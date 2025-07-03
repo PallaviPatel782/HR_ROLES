@@ -52,8 +52,10 @@ const styles = StyleSheet.create({
         marginBottom: SH(10)
     },
     txtInput: {
-        paddingLeft: 0,
-        color: Colors.black
+        fontFamily: "Inter-Medium",
+        fontSize: SF(13),
+        textTransform: "capitalize",
+        color:Colors.dark
     },
     dobInputView: {
         flexDirection: 'row',

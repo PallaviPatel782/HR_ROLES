@@ -169,7 +169,7 @@ const Companyprofilescreen = ({ navigation }) => {
           ))}
         </ToggleSection>
 
-       <View style={{alignSelf:"flex-end"}}>
+       <View>
          <TouchableOpacity
           style={[styles.btn, { paddingHorizontal: windowWidth * 0.08 }]}
           onPress={() => alert('Logout pressed')}
