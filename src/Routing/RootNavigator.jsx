@@ -32,6 +32,7 @@ import PolicyDetail1 from "../StackScreens/Policies/PolicyDetail1";
 import PolicyDetail2 from "../StackScreens/Policies/PolicyDetail2";
 import HelpCenterScreen from "../DrawerSection/HelpCenterScreen";
 import TermsAndConditionsScreen from "../DrawerSection/TermsAndConditionsScreen";
+import AnnouncementScreen from "../StackScreens/HrActionFiles.jsx/announcementScreen";
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -83,6 +84,7 @@ const AppStack = () => {
       <Stack.Screen name="App" component={DrawerNavigator} />
       <Stack.Screen name="Notification" component={Notification} />
       <Stack.Screen name="getleavescreen" component={getleavescreen} />
+      <Stack.Screen name="AnnouncementScreen" component={AnnouncementScreen} />
       <Stack.Screen name="salaryscreen" component={salaryscreen} />
       <Stack.Screen name="userprofilescreen" component={userprofilescreen} />
       <Stack.Screen name="companyprofilescreen" component={companyprofilescreen} />

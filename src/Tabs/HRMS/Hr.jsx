@@ -49,6 +49,13 @@ const actions = [
     color: '#e9dfed',
     textColor: '#bc79db',
   },
+  {
+    icon: <MaterialCommunityIcons name="bullhorn-variant" size={30} color="#311B92" />, // Deep Indigo
+    title: 'Announcement',
+    screen: 'AnnouncementScreen',
+    color: '#e1eefa',
+    textColor: '#3271a8'
+  }
 ];
 
 const getGreetingAndIcon = () => {
@@ -69,53 +76,58 @@ const { greeting, icon } = getGreetingAndIcon();
 const Hr = ({ navigation }) => {
   const insets = useSafeAreaInsets();
   return (
-    <SafeAreaView style={[containerStyle.container, { paddingHorizontal: 0 }]}>
+    <SafeAreaView edges={['top']} style={[containerStyle.container, { flex: 1, paddingHorizontal: 0 }]}>
       <CustomHeader navigation={navigation} />
-      <ScrollView showsVerticalScrollIndicator={false}>
-        <View style={{ paddingHorizontal: SW(10) }}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Punch In & Out</Text>
-          </View>
-
-          <View style={styles.punchCard}>
-            <View style={styles.punchTimes}>
-              <Text style={styles.punchLabel}>Punch In</Text>
-              <Text style={styles.punchTime}>16:27</Text>
-              <Text style={[styles.punchLabel, { marginTop: SH(16) }]}>Punch Out</Text>
-              <Text style={styles.punchTime}>--:--</Text>
+      <View>
+        <ScrollView showsVerticalScrollIndicator={false}
+          contentContainerStyle={{
+            paddingBottom: insets.bottom
+          }}>
+          <View style={{ paddingHorizontal: SW(10) }}>
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>Punch In & Out</Text>
             </View>
-            <TouchableOpacity style={styles.punchOutButton}>
-              <MaterialCommunityIcons name="exit-run" size={28} color="white" />
-              <Text style={styles.punchOutText}>Punch Out</Text>
-            </TouchableOpacity>
-          </View>
 
-          {/* HR Actions Section */}
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Quick HR Actions</Text>
-            {/* <TouchableOpacity>
+            <View style={styles.punchCard}>
+              <View style={styles.punchTimes}>
+                <Text style={styles.punchLabel}>Punch In</Text>
+                <Text style={styles.punchTime}>16:27</Text>
+                <Text style={[styles.punchLabel, { marginTop: SH(16) }]}>Punch Out</Text>
+                <Text style={styles.punchTime}>--:--</Text>
+              </View>
+              <TouchableOpacity style={styles.punchOutButton}>
+                <MaterialCommunityIcons name="exit-run" size={28} color="white" />
+                <Text style={styles.punchOutText}>Punch Out</Text>
+              </TouchableOpacity>
+            </View>
+
+            {/* HR Actions Section */}
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>Quick HR Actions</Text>
+              {/* <TouchableOpacity>
             <Text style={styles.sectionAction}>Edit</Text>
           </TouchableOpacity> */}
-          </View>
+            </View>
 
-          <View style={styles.grid}>
-            {actions.map((item, index) => (
-              <TouchableOpacity
-                key={index}
-                style={[styles.card, { backgroundColor: item.color }]}
-                activeOpacity={0.8}
-                onPress={() => navigation.navigate(item.screen)}
-              >
-                <View style={[styles.iconWrapper, { backgroundColor: item.textColor }]}>
-                  {React.cloneElement(item.icon, { color: Colors.light })}
-                </View>
-                <Text style={[styles.cardText, { color: Colors.dark }]}>{item.title}</Text>
-              </TouchableOpacity>
-            ))}
+            <View style={styles.grid}>
+              {actions.map((item, index) => (
+                <TouchableOpacity
+                  key={index}
+                  style={[styles.card, { backgroundColor: item.color }]}
+                  activeOpacity={0.8}
+                  onPress={() => navigation.navigate(item.screen)}
+                >
+                  <View style={[styles.iconWrapper, { backgroundColor: item.textColor }]}>
+                    {React.cloneElement(item.icon, { color: Colors.light })}
+                  </View>
+                  <Text style={[styles.cardText, { color: Colors.dark }]}>{item.title}</Text>
+                </TouchableOpacity>
+              ))}
 
+            </View>
           </View>
-        </View>
-      </ScrollView>
+        </ScrollView>
+      </View>
     </SafeAreaView>
   );
 };
