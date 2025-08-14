@@ -1,15 +1,12 @@
-export const BASE_URL = "https://gs-tourism-backend.onrender.com/api";
+export const BASE_URL = "https://api.tghrms.com/api/v1";
 
-// add expenses api 
-export const ADD_EXPENSES_API = `${BASE_URL}/expenses/create`;
+//auth apis 
 
-// auth apis
-export const AUTHORIZATION_API = `${BASE_URL}/APIToken/get`;
-export const LOGIN = `${BASE_URL}/auth/login`;
+export const LOGIN_API = `${BASE_URL}/user/login`;
 
-// flight 
-export const AIRPORTLISTS = `${BASE_URL}/airports`;
-export const FLIGHT_SEARCH = `${BASE_URL}/flight-search/search`;
-export const FARE_RULE = `${BASE_URL}/farerules`;
-export const FARE_QUOTE = `${BASE_URL}/farequote`;
-export const SSR = `${BASE_URL}/flight/ssr`;
+// attendance apis 
+
+export const PUNCH_IN_API = `${BASE_URL}/attendance2/punchin`;
+export const PUNCH_Out_API = `${BASE_URL}/attendance2/punchout`;
+export const ATTENDANCE_RECORD= `${BASE_URL}/attendance2/summary`;
+export const ATTENDANCES_API_DATA =`${BASE_URL}/attendance2/monthrecord`;

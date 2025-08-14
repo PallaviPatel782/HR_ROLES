@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import CustomHeader from '../../Components/CustomHeader';
@@ -12,6 +12,10 @@ import { SF, SH, SW } from '../../utils/Dimensions';
 import styles from '../../Styles/HrStyle';
 import { containerStyle } from '../../Styles/ScreenContainer';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import axios from 'axios';
+import { ATTENDANCE_RECORD, PUNCH_IN_API, PUNCH_Out_API } from '../../utils/BASE_URL';
+import { showMessage } from 'react-native-flash-message';
 
 const actions = [
   {
@@ -49,35 +53,208 @@ const actions = [
     color: '#e9dfed',
     textColor: '#bc79db',
   },
-  {
-    icon: <MaterialCommunityIcons name="bullhorn-variant" size={30} color="#311B92" />, // Deep Indigo
-    title: 'Announcement',
-    screen: 'AnnouncementScreen',
-    color: '#e1eefa',
-    textColor: '#3271a8'
-  }
+  // {
+  //   icon: <MaterialCommunityIcons name="bullhorn-variant" size={30} color="#311B92" />, // Deep Indigo
+  //   title: 'Announcement',
+  //   screen: 'AnnouncementScreen',
+  //   color: '#e1eefa',
+  //   textColor: '#3271a8'
+  // }
 ];
-
-const getGreetingAndIcon = () => {
-  const hour = new Date().getHours();
-
-  if (hour >= 5 && hour < 12) {
-    return { greeting: "Good Morning", icon: "☀️" };
-  } else if (hour >= 12 && hour < 17) {
-    return { greeting: "Good Afternoon", icon: "🌤️" };
-  } else {
-    return { greeting: "Good Evening", icon: "🌙" };
-  }
-};
-
-const { greeting, icon } = getGreetingAndIcon();
-
 
 const Hr = ({ navigation }) => {
   const insets = useSafeAreaInsets();
+  const [firstName, setFirstName] = useState(null);
+  const [lastName, setLastName] = useState(null);
+  const [punchInTime, setPunchInTime] = useState(null);
+  const [punchOutTime, setPunchOutTime] = useState(null);
+  const [currentTime, setCurrentTime] = useState("");
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      const now = new Date();
+      setCurrentTime(now.toLocaleTimeString());
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, []);
+
+  useEffect(() => {
+    const fetchUserInfo = async () => {
+      try {
+        const userInfoString = await AsyncStorage.getItem('userInfo');
+        if (userInfoString) {
+          const userInfo = JSON.parse(userInfoString);
+          setFirstName(userInfo.firstName);
+          setLastName(userInfo.lastName);
+        }
+      } catch (error) {
+        console.error('Error fetching user info:', error);
+      }
+    };
+    fetchUserInfo();
+  }, []);
+
+  useEffect(() => {
+  const checkNewDay = setInterval(() => {
+    if (punchInTime) {
+      const punchDate = new Date(punchInTime).toDateString();
+      const today = new Date().toDateString();
+      if (punchDate !== today) {
+        setPunchInTime(null);
+        setPunchOutTime(null);
+      }
+    }
+  }, 60 * 1000); 
+
+  return () => clearInterval(checkNewDay);
+}, [punchInTime]);
+
+  useEffect(() => {
+    fetchTodayPunch();
+  }, []);
+
+  const fetchTodayPunch = async () => {
+    try {
+      const token = await AsyncStorage.getItem("authToken");
+      console.log("🔑 Auth Token from AsyncStorage:", token);
+
+      const today = new Date();
+      const headers = {
+        "Authorization": `Bearer ${token}`,
+        "Content-Type": "application/json",
+      };
+
+      console.log("Today’s Date:", today);
+      console.log("API Endpoint:", ATTENDANCE_RECORD);
+
+      const res = await axios.get(ATTENDANCE_RECORD, {
+        headers: headers,
+      });
+
+      console.log("Full API Response Object:", res);
+      console.log("Response Status:", res.status);
+      console.log("Response Data:", res.data);
+
+      if (res.data?.data?.timestamps?.length > 0) {
+        const punchData = res.data.data.timestamps[0];
+        console.log("Punch Data Found:", punchData);
+
+        setPunchInTime(punchData.punchIn || null);
+        setPunchOutTime(punchData.punchOut || null);
+      } else {
+        console.warn("No timestamps found in response.");
+        setPunchInTime(null);
+        setPunchOutTime(null);
+      }
+
+    } catch (err) {
+      console.error("Error fetching punch data:", err);
+      if (err.response) {
+        console.error("Error Response Status:", err.response.status);
+        console.error("Error Response Data:", err.response.data);
+      } else {
+        console.error("Error Message:", err.message);
+      }
+    }
+  };
+
+
+  const handlePunchIn = async () => {
+    try {
+      const token = await AsyncStorage.getItem("authToken");
+      const res = await axios.post(
+        PUNCH_IN_API,
+        {},
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      console.log("Punch In API Response:", res.data);
+
+      showMessage({
+        message: res.data?.message || "Punch-in successful",
+        type: "success",
+        icon: "success",
+      });
+
+      const now = new Date();
+      setPunchInTime(now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
+    } catch (err) {
+      console.error('Punch In failed:', err);
+      showMessage({
+        message: "Punch-in failed. Please try again.",
+        type: "danger",
+        icon: "danger",
+      });
+    }
+  };
+
+  const handlePunchOut = async () => {
+    try {
+      const token = await AsyncStorage.getItem("authToken");
+      const res = await axios.post(
+        PUNCH_Out_API,
+        {},
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      console.log("Punch Out API Response:", res.data);
+
+      showMessage({
+        message: res.data?.message || "Punch-out successful",
+        type: "success",
+        icon: "success",
+      });
+
+      const now = new Date();
+      setPunchOutTime(now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
+    } catch (err) {
+      console.error('Punch Out failed:', err);
+      showMessage({
+        message: "Punch-out failed. Please try again.",
+        type: "danger",
+        icon: "danger",
+      });
+    }
+  };
+
+  const getGreetingAndIcon = () => {
+    const hour = new Date().getHours();
+
+    if (hour >= 5 && hour < 12) {
+      return { greeting: "Good Morning", icon: "☀️" };
+    } else if (hour >= 12 && hour < 17) {
+      return { greeting: "Good Afternoon", icon: "🌤️" };
+    } else {
+      return { greeting: "Good Evening", icon: "🌙" };
+    }
+  };
+
+  const { greeting, icon } = getGreetingAndIcon();
+
+  const formatTime = (isoString) => {
+    if (!isoString) return null;
+    const date = new Date(isoString);
+    const options = {
+      hour: 'numeric',
+      minute: 'numeric',
+      // second: 'numeric',
+      hour12: true
+    };
+
+    return date.toLocaleTimeString('en-IN', options);
+  };
+
   return (
     <SafeAreaView edges={['top']} style={[containerStyle.container, { flex: 1, paddingHorizontal: 0 }]}>
       <CustomHeader navigation={navigation} />
+      <View style={styles.NameContainer}>
+        <View>
+          <Text style={styles.noon}>{greeting},</Text>
+          <Text style={styles.name}>{firstName} {lastName}</Text>
+        </View>
+        <Text style={styles.icon}>{icon}</Text>
+      </View>
       <View>
         <ScrollView showsVerticalScrollIndicator={false}
           contentContainerStyle={{
@@ -89,16 +266,53 @@ const Hr = ({ navigation }) => {
             </View>
 
             <View style={styles.punchCard}>
-              <View style={styles.punchTimes}>
+              <View>
                 <Text style={styles.punchLabel}>Punch In</Text>
-                <Text style={styles.punchTime}>16:27</Text>
-                <Text style={[styles.punchLabel, { marginTop: SH(16) }]}>Punch Out</Text>
-                <Text style={styles.punchTime}>--:--</Text>
+                <Text style={styles.punchTime}>{formatTime(punchInTime) || '--:--'}</Text>
+
+                <Text style={styles.punchLabel}>Punch Out</Text>
+                <Text style={styles.punchTime}>{formatTime(punchOutTime) || '--:--'}</Text>
               </View>
-              <TouchableOpacity style={styles.punchOutButton}>
-                <MaterialCommunityIcons name="exit-run" size={28} color="white" />
-                <Text style={styles.punchOutText}>Punch Out</Text>
-              </TouchableOpacity>
+
+              {!punchInTime ? (
+                // Punch In button
+                <TouchableOpacity
+                  onPress={handlePunchIn}
+                  style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    marginTop: 20,
+                    backgroundColor: 'green',
+                    padding: 10,
+                    borderRadius: 8
+                  }}
+                >
+                  <MaterialCommunityIcons name="login" size={28} color="white" />
+                  <Text style={{ color: 'white', marginLeft: 8 }}>Punch In</Text>
+                </TouchableOpacity>
+              ) : (
+
+                <TouchableOpacity
+                  onPress={!punchOutTime ? handlePunchOut : null}
+                  disabled={!!punchOutTime}
+                  style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    marginTop: 20,
+                    backgroundColor: punchOutTime ? 'gray' : 'red',
+                    padding: 10,
+                    borderRadius: 8,
+                    opacity: punchOutTime ? 0.6 : 1
+                  }}
+                >
+                  <MaterialCommunityIcons name="exit-run" size={28} color="white" />
+                  <Text style={{ color: 'white', marginLeft: 8 }}>
+                    {punchOutTime ? 'Punched Out' : 'Punch Out'}
+                  </Text>
+                </TouchableOpacity>
+              )}
+
+
             </View>
 
             {/* HR Actions Section */}

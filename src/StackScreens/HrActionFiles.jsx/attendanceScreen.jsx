@@ -12,10 +12,47 @@ import Colors from '../../utils/Colors';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import FilterModal from '../../Components/FilterModal';
 import moment from 'moment';
+import { ATTENDANCE_RECORDS } from '../../utils/BASE_URL';
+import axios from 'axios';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const AttendanceScreen = ({ navigation }) => {
   const [filterModalVisible, setFilterModalVisible] = useState(false)
   const [filteredDaysData, setFilteredDaysData] = useState([]);
+
+  const getAttendance = async () => {
+    try {
+      const token = await AsyncStorage.getItem("authToken");
+
+      const res = await axios.get(ATTENDANCE_RECORDS, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        data: {}
+      });
+
+      console.log("Attendance API Response:", res.data);
+      return res.data;
+
+    } catch (err) {
+      console.error("Attendance API Error:", err);
+      if (err.response?.status === 401) {
+        await AsyncStorage.removeItem("authToken");
+        navigation.reset({
+          index: 0,
+          routes: [
+            {
+              name: 'AuthStack',
+              state: {
+                routes: [{ name: 'LoginScreen' }],
+              },
+            },
+          ],
+        });
+      }
+      return null;
+    }
+  };
 
   const [localFilters, setLocalFilters] = useState({
     dateRange: { from: null, to: null },

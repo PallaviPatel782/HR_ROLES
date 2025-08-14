@@ -127,7 +127,7 @@ const RootNavigator = () => {
 
   // initialRouteName={initialRoute}
   return (
-    <Stack.Navigator screenOptions={{ headerShown: false }}>
+    <Stack.Navigator screenOptions={{ headerShown: false }} initialRouteName={initialRoute}>
       <Stack.Screen name="AuthStack" component={AuthStack} />
       <Stack.Screen name="AppStack" component={AppStack} />
     </Stack.Navigator>

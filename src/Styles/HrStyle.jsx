@@ -17,16 +17,17 @@ const styles = StyleSheet.create({
         fontSize: SF(16),
         fontFamily: "Inter-Medium",
         color: Colors.darkBlue,
+        marginLeft: SW(8)
     },
     sectionAction: {
         fontSize: SF(15),
-        color: Colors.primary,
-        fontWeight: '600',
+        color: Colors.gradientBlue,
+        fontFamily: 'Inter-Bold',
     },
     punchCard: {
         backgroundColor: '#2D32EC',
         borderRadius: 20,
-        paddingVertical: SH(12),
+        paddingVertical: SH(20),
         paddingHorizontal: SW(20),
         flexDirection: 'row',
         justifyContent: 'space-between',
@@ -37,13 +38,16 @@ const styles = StyleSheet.create({
     },
     punchLabel: {
         color: Colors.light,
-        fontSize: SF(15),
+        fontSize: SF(16),
+        fontFamily: "Inter-Regular",
+        textTransform: "capitalize",
         opacity: 0.8,
     },
     punchTime: {
         color: Colors.light,
-        fontSize: SF(16),
-        fontFamily: "Inter-Medium"
+        fontSize: SF(13),
+        fontFamily: "Inter-Medium",
+        textTransform: "uppercase"
     },
     punchOutButton: {
         backgroundColor: '#1B1FE0',
@@ -93,12 +97,15 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         marginBottom: SH(8),
     },
-      NameContainer: {
+    NameContainer: {
         backgroundColor: Colors.gradientBlue,
         paddingHorizontal: SW(18),
         flexDirection: 'row',
         justifyContent: 'space-between',
-        alignItems: 'center'
+        alignItems: 'center',
+        paddingBottom: SH(15),
+        borderBottomLeftRadius: 25,
+        borderBottomRightRadius: 25
     },
     noon: {
         fontSize: SF(18),

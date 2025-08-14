@@ -48,37 +48,37 @@ const CustomDrawer = ({ navigation }) => {
     }
   };
   const handleLogout = async () => {
-    // console.log("logout button is pressed");
+    console.log("logout button is pressed");
 
-    // try {
-    //   await AsyncStorage.removeItem('authToken');
-    //   await AsyncStorage.removeItem('userInfo');
-    //   console.log("authToken & userInfo cleared");
+    try {
+      await AsyncStorage.removeItem('authToken');
+      await AsyncStorage.removeItem('userInfo');
+      console.log("authToken & userInfo cleared");
 
-    //   showMessage({
-    //     message: 'Logout successful',
-    //     description: 'You have been logged out.',
-    //     type: 'success',
-    //     icon: 'success',
-    //     duration: 3000,
-    //   });
+      showMessage({
+        message: 'Logout successful',
+        description: 'You have been logged out.',
+        type: 'success',
+        icon: 'success',
+        duration: 3000,
+      });
 
-    //   navigation.reset({
-    //     index: 0,
-    //     routes: [{ name: "AuthStack" }],
-    //   });
+      navigation.reset({
+        index: 0,
+        routes: [{ name: "AuthStack" }],
+      });
 
-    // } catch (error) {
-    //   console.error('Logout error:', error);
+    } catch (error) {
+      console.error('Logout error:', error);
 
-    //   showMessage({
-    //     message: 'Logout failed',
-    //     description: 'Something went wrong while logging out.',
-    //     type: 'danger',
-    //     icon: 'danger',
-    //     duration: 3000,
-    //   });
-    // }
+      showMessage({
+        message: 'Logout failed',
+        description: 'Something went wrong while logging out.',
+        type: 'danger',
+        icon: 'danger',
+        duration: 3000,
+      });
+    }
   };
 
   return (
@@ -108,7 +108,7 @@ const CustomDrawer = ({ navigation }) => {
                 onPress={() => handleNavigation(item.screen)}
               >
                 <Icon name={item.icon} size={15} color={Colors.gradientBlue
-                  
+
                 } style={styles.icon} />
                 <Text style={styles.menuText1}>{item.label}</Text>
               </TouchableOpacity>

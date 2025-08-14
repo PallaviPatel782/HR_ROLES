@@ -38,7 +38,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.gradientBlue,
     // paddingVertical: SH(7),
     paddingHorizontal: SW(15),
-    height:SH(50)
+    height:SH(50),
   },
   leftIcon: {
     padding: SW(5),

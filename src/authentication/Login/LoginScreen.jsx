@@ -9,7 +9,7 @@ import { formStyle } from '../../Styles/formStyle';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AppHeader from '../../Components/AppHeader';
-import { LOGIN } from '../../utils/BASE_URL';
+import { LOGIN_API } from '../../utils/BASE_URL';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { showMessage } from 'react-native-flash-message';
@@ -46,62 +46,61 @@ const LoginScreen = () => {
     return true;
   };
 
-  const handleLogin = async () => {
-    // if (!validateForm()) return;
+const handleLogin = async () => {
+  if (!validateForm()) return;
 
-    // setLoading(true);
-    // try {
-    //   console.log("Sending login data:", { email: userName, password });
-
-    //   const response = await axios.post(LOGIN, {
-    //     email: userName,
-    //     password: password,
-    //   }, {
-    //     headers: { 'Content-Type': 'application/json' }
-    //   });
-
-    //   if (response?.data?.user && response?.data?.token) {
-    //     await AsyncStorage.setItem('authToken', response.data.token);
-    //     await AsyncStorage.setItem('userInfo', JSON.stringify(response.data.user));
-
-    //     showMessage({
-    //       message: "Login Successful",
-    //       type: "success",
-    //       icon: "success",
-    //       duration: 3000,
-    //     });
-
-    //     navigation.reset({
-    //       index: 0,
-    //       routes: [{ name: "AppStack" }],
-    //     });
-
-    //   } else {
-    //     showMessage({
-    //       message: response?.data?.message || 'Invalid credentials',
-    //       type: 'danger',
-    //       icon: 'danger',
-    //       duration: 3000,
-    //     });
-    //   }
-    // } catch (error) {
-    //   console.error("Login Error:", error?.response?.data || error.message);
-
-    //   showMessage({
-    //     message: error.response?.data?.message || 'Something went wrong',
-    //     type: 'danger',
-    //     icon: 'danger',
-    //     duration: 3000,
-    //   });
-    // } finally {
-    //   setLoading(false);
-    // }
-
-
-   navigation.navigate("AppStack");
-
-
+  const payload = {
+    email: userName.trim(),
+    password: password.trim(),
   };
+
+  console.log("📤 Login Payload:", payload);
+
+  setLoading(true);
+  try {
+    const response = await axios.post(LOGIN_API, payload, {
+      headers: { 'Content-Type': 'application/json' }
+    });
+
+    console.log("📥 API Response:", response?.data);
+
+    if (response?.data?.user && response?.data?.token) {
+      await AsyncStorage.setItem('authToken', response.data.token);
+      await AsyncStorage.setItem('userInfo', JSON.stringify(response.data.user));
+
+      showMessage({
+        message: "Login Successful",
+        type: "success",
+        icon: "success",
+        duration: 3000,
+      });
+
+      navigation.reset({
+        index: 0,
+        routes: [{ name: "AppStack" }],
+      });
+    } else {
+      showMessage({
+        message: response?.data?.message || 'Invalid credentials',
+        type: 'danger',
+        icon: 'danger',
+        duration: 3000,
+      });
+    }
+  } catch (error) {
+    console.error("❌ Login Error:", error?.response?.data || error.message);
+
+    showMessage({
+      message: error.response?.data?.message || 'Something went wrong',
+      type: 'danger',
+      icon: 'danger',
+      duration: 3000,
+    });
+  } finally {
+    setLoading(false);
+  }
+};
+
 
 
   return (
