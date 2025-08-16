@@ -1,7 +1,7 @@
 import { View, Text, TouchableOpacity, FlatList, Modal, useColorScheme, Platform, } from 'react-native';
 import styles from '../../Styles/attendanceScreenStyle';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { SH, SW, SF } from '../../utils/Dimensions';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -12,24 +12,30 @@ import Colors from '../../utils/Colors';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import FilterModal from '../../Components/FilterModal';
 import moment from 'moment';
-import { ATTENDANCE_RECORDS } from '../../utils/BASE_URL';
+import { ATTENDANCES_API_DATA } from '../../utils/BASE_URL';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const AttendanceScreen = ({ navigation }) => {
   const [filterModalVisible, setFilterModalVisible] = useState(false)
   const [filteredDaysData, setFilteredDaysData] = useState([]);
+  const [AttendanceData, setAttendanceData] = useState({});
+
+  useEffect(() => {
+    getAttendance();
+  }, [])
 
   const getAttendance = async () => {
     try {
       const token = await AsyncStorage.getItem("authToken");
 
-      const res = await axios.get(ATTENDANCE_RECORDS, {
+      const res = await axios.get(ATTENDANCES_API_DATA, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
         data: {}
       });
+      setAttendanceData(res.data)
 
       console.log("Attendance API Response:", res.data);
       return res.data;
@@ -85,6 +91,8 @@ const AttendanceScreen = ({ navigation }) => {
 
     setFilteredDaysData(filtered);
   };
+
+  const latestRecord = AttendanceData?.data?.[0] || {};
 
 
   const daysData = [
@@ -193,21 +201,21 @@ const AttendanceScreen = ({ navigation }) => {
           {[
             {
               icon: 'exit-run',
-              value: punchInTime,
+              value: latestRecord.punchIn || "-",
               backgroundColor: '#E3F2FD',
               iconColor: '#1976D2',
               textColor: '#0D47A1',
             },
             {
               icon: 'logout-variant',
-              value: punchOutTime,
+              value: latestRecord.punchOut || "-",
               backgroundColor: '#FFEBEE',
               iconColor: '#D32F2F',
               textColor: '#B71C1C',
             },
             {
               icon: 'clock-outline',
-              value: totalHours,
+              value: latestRecord.hoursWorked || "-",
               backgroundColor: '#E8F5E9',
               iconColor: '#388E3C',
               textColor: '#1B5E20',
@@ -230,7 +238,6 @@ const AttendanceScreen = ({ navigation }) => {
             </View>
           ))}
         </View>
-
 
         <View style={{ flexDirection: 'row', justifyContent: 'flex-end', paddingVertical: SH(10) }}>
           <TouchableOpacity onPress={() => setFilterModalVisible(true)} style={{ flexDirection: 'row', alignItems: 'center' }}>
@@ -270,22 +277,27 @@ const AttendanceScreen = ({ navigation }) => {
           ))}
         </View>
         <FlatList
-          data={filteredDaysData.length > 0 ? filteredDaysData : daysData}
-          keyExtractor={(item, index) => `${item.day}-${item.month}-${index}`}
-          renderItem={({ item, index }) => (
-            <View style={{
-              flexDirection: 'row',
-              backgroundColor: index % 2 === 0 ? '#F4F7FB' : '#FFFFFF',
-              paddingVertical: SH(12),
-              borderBottomWidth: 1,
-              borderBottomColor: '#E0E0E0',
-            }}>
-              <Text style={[styles.tableCell, { fontFamily: 'Inter-Bold' }]}>{`${item.day} ${item.month}`}</Text>
-              <Text style={styles.tableCell}>{item.punchIn}</Text>
-              <Text style={styles.tableCell}>{item.punchOut}</Text>
-              <Text style={styles.tableCell}>{item.totalHours}</Text>
-            </View>
-          )}
+          data={filteredDaysData.length > 0 ? filteredDaysData : AttendanceData?.data || []}
+          keyExtractor={(item, index) => `${item.date}-${index}`}
+          renderItem={({ item, index }) => {
+            // date को format करो (dd/mm/yyyy → dd Month)
+            const formattedDate = moment(item.date, "DD/MM/YYYY").format("DD MMM");
+
+            return (
+              <View style={{
+                flexDirection: 'row',
+                backgroundColor: index % 2 === 0 ? '#F4F7FB' : '#FFFFFF',
+                paddingVertical: SH(12),
+                borderBottomWidth: 1,
+                borderBottomColor: '#E0E0E0',
+              }}>
+                <Text style={[styles.tableCell, { fontFamily: 'Inter-Bold' }]}>{formattedDate}</Text>
+                <Text style={styles.tableCell}>{item.punchIn || "-"}</Text>
+                <Text style={styles.tableCell}>{item.punchOut || "-"}</Text>
+                <Text style={styles.tableCell}>{item.hoursWorked || "-"}</Text>
+              </View>
+            );
+          }}
           contentContainerStyle={{
             paddingBottom: SH(20),
             borderBottomLeftRadius: 10,
@@ -294,6 +306,7 @@ const AttendanceScreen = ({ navigation }) => {
           }}
           showsVerticalScrollIndicator={false}
         />
+
       </View>
       <FilterModal
         visible={filterModalVisible}

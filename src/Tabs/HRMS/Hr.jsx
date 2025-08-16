@@ -117,7 +117,7 @@ const Hr = ({ navigation }) => {
   const fetchTodayPunch = async () => {
     try {
       const token = await AsyncStorage.getItem("authToken");
-      console.log("🔑 Auth Token from AsyncStorage:", token);
+      console.log("Auth Token from AsyncStorage:", token);
 
       const today = new Date();
       const headers = {
