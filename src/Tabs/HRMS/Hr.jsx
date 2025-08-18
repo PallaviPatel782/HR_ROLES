@@ -68,16 +68,6 @@ const Hr = ({ navigation }) => {
   const [lastName, setLastName] = useState(null);
   const [punchInTime, setPunchInTime] = useState(null);
   const [punchOutTime, setPunchOutTime] = useState(null);
-  const [currentTime, setCurrentTime] = useState("");
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      const now = new Date();
-      setCurrentTime(now.toLocaleTimeString());
-    }, 1000);
-
-    return () => clearInterval(timer);
-  }, []);
 
   useEffect(() => {
     const fetchUserInfo = async () => {
@@ -96,58 +86,40 @@ const Hr = ({ navigation }) => {
   }, []);
 
   useEffect(() => {
-  const checkNewDay = setInterval(() => {
-    if (punchInTime) {
-      const punchDate = new Date(punchInTime).toDateString();
-      const today = new Date().toDateString();
-      if (punchDate !== today) {
-        setPunchInTime(null);
-        setPunchOutTime(null);
-      }
-    }
-  }, 60 * 1000); 
-
-  return () => clearInterval(checkNewDay);
-}, [punchInTime]);
-
-  useEffect(() => {
     fetchTodayPunch();
   }, []);
 
   const fetchTodayPunch = async () => {
     try {
       const token = await AsyncStorage.getItem("authToken");
-      console.log("Auth Token from AsyncStorage:", token);
-
-      const today = new Date();
       const headers = {
         "Authorization": `Bearer ${token}`,
         "Content-Type": "application/json",
       };
 
-      console.log("Today’s Date:", today);
-      console.log("API Endpoint:", ATTENDANCE_RECORD);
-
-      const res = await axios.get(ATTENDANCE_RECORD, {
-        headers: headers,
-      });
-
-      console.log("Full API Response Object:", res);
-      console.log("Response Status:", res.status);
-      console.log("Response Data:", res.data);
+      const res = await axios.get(ATTENDANCE_RECORD, { headers });
 
       if (res.data?.data?.timestamps?.length > 0) {
-        const punchData = res.data.data.timestamps[0];
-        console.log("Punch Data Found:", punchData);
+        const today = new Date().toDateString();
+        const todayRecord = res.data.data.timestamps.find((t) => {
+          const punchDate = new Date(t.punchIn).toDateString();
+          return punchDate === today;
+        });
 
-        setPunchInTime(punchData.punchIn || null);
-        setPunchOutTime(punchData.punchOut || null);
+        if (todayRecord) {
+          console.log("Today's Punch Data Found:", todayRecord);
+          setPunchInTime(todayRecord.punchIn || null);
+          setPunchOutTime(todayRecord.punchOut || null);
+        } else {
+          console.warn("No punch data for today.");
+          setPunchInTime(null);
+          setPunchOutTime(null);
+        }
       } else {
         console.warn("No timestamps found in response.");
         setPunchInTime(null);
         setPunchOutTime(null);
       }
-
     } catch (err) {
       console.error("Error fetching punch data:", err);
       if (err.response) {
@@ -268,49 +240,60 @@ const Hr = ({ navigation }) => {
             <View style={styles.punchCard}>
               <View>
                 <Text style={styles.punchLabel}>Punch In</Text>
-                <Text style={styles.punchTime}>{formatTime(punchInTime) || '--:--'}</Text>
+                <Text style={styles.punchTime}>
+                  {punchInTime ? formatTime(new Date(punchInTime)) : '--:--'}
+                </Text>
 
                 <Text style={styles.punchLabel}>Punch Out</Text>
-                <Text style={styles.punchTime}>{formatTime(punchOutTime) || '--:--'}</Text>
+                <Text style={styles.punchTime}>
+                  {punchOutTime ? formatTime(new Date(punchOutTime)) : '--:--'}
+                </Text>
               </View>
 
-              {!punchInTime ? (
-                // Punch In button
-                <TouchableOpacity
-                  onPress={handlePunchIn}
-                  style={{
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    marginTop: 20,
-                    backgroundColor: 'green',
-                    padding: 10,
-                    borderRadius: 8
-                  }}
-                >
-                  <MaterialCommunityIcons name="login" size={28} color="white" />
-                  <Text style={{ color: 'white', marginLeft: 8 }}>Punch In</Text>
-                </TouchableOpacity>
-              ) : (
+           <View>
+  {!punchInTime ? (
+    <TouchableOpacity
+      onPress={handlePunchIn}
+      style={{
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginTop: SH(10),
+        backgroundColor: 'green',
+        paddingVertical: SH(12),
+        paddingHorizontal: SW(20),
+        borderRadius: 8,
+      }}
+    >
+      <MaterialCommunityIcons name="login" size={20} color="white" />
+      <Text style={{ color: 'white', marginLeft: SW(8), fontSize: SF(13), fontFamily: 'Inter-Medium' }}>
+        Punch In
+      </Text>
+    </TouchableOpacity>
+  ) : (
+    <TouchableOpacity
+      onPress={!punchOutTime ? handlePunchOut : null}
+      disabled={!!punchOutTime}
+      style={{
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginTop: SH(10),
+        backgroundColor: punchOutTime ? 'gray' : 'red',
+        paddingVertical: SH(12),
+        paddingHorizontal: SW(20),
+        borderRadius: 8,
+        opacity: punchOutTime ? 0.6 : 1,
+      }}
+    >
+      <MaterialCommunityIcons name="exit-run" size={20} color="white" />
+      <Text style={{ color: 'white', marginLeft: SW(8), fontSize: SF(13), fontFamily: 'Inter-Medium' }}>
+        {punchOutTime ? 'Punched Out' : 'Punch Out'}
+      </Text>
+    </TouchableOpacity>
+  )}
+</View>
 
-                <TouchableOpacity
-                  onPress={!punchOutTime ? handlePunchOut : null}
-                  disabled={!!punchOutTime}
-                  style={{
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    marginTop: 20,
-                    backgroundColor: punchOutTime ? 'gray' : 'red',
-                    padding: 10,
-                    borderRadius: 8,
-                    opacity: punchOutTime ? 0.6 : 1
-                  }}
-                >
-                  <MaterialCommunityIcons name="exit-run" size={28} color="white" />
-                  <Text style={{ color: 'white', marginLeft: 8 }}>
-                    {punchOutTime ? 'Punched Out' : 'Punch Out'}
-                  </Text>
-                </TouchableOpacity>
-              )}
 
 
             </View>

@@ -92,105 +92,7 @@ const AttendanceScreen = ({ navigation }) => {
     setFilteredDaysData(filtered);
   };
 
-  const latestRecord = AttendanceData?.data?.[0] || {};
-
-
-  const daysData = [
-    {
-      day: '01',
-      month: 'June',
-      dayOfWeek: 'Sun',
-      date: new Date('2025-06-01'),
-      punchIn: '09:00 AM',
-      punchOut: '06:00 PM',
-      totalHours: '9h',
-    },
-    {
-      day: '02',
-      month: 'June',
-      dayOfWeek: 'Mon',
-      date: new Date('2025-06-02'),
-      punchIn: '09:15 AM',
-      punchOut: '06:10 PM',
-      totalHours: '8h 55m',
-    },
-    {
-      day: '03',
-      month: 'June',
-      dayOfWeek: 'Tue',
-      date: new Date('2025-06-03'),
-      punchIn: '09:05 AM',
-      punchOut: '05:50 PM',
-      totalHours: '8h 45m',
-    },
-    {
-      day: '04',
-      month: 'June',
-      dayOfWeek: 'Wed',
-      date: new Date('2025-06-04'),
-      punchIn: '09:10 AM',
-      punchOut: '06:00 PM',
-      totalHours: '8h 50m',
-    },
-    {
-      day: '05',
-      month: 'June',
-      dayOfWeek: 'Thu',
-      date: new Date('2025-06-05'),
-      punchIn: '09:00 AM',
-      punchOut: '06:10 PM',
-      totalHours: '9h 10m',
-    },
-    {
-      day: '06',
-      month: 'June',
-      dayOfWeek: 'Fri',
-      date: new Date('2025-06-06'),
-      punchIn: '09:30 AM',
-      punchOut: '06:00 PM',
-      totalHours: '8h 30m',
-    },
-    {
-      day: '07',
-      month: 'June',
-      dayOfWeek: 'Sat',
-      date: new Date('2025-06-07'),
-      punchIn: '10:00 AM',
-      punchOut: '04:00 PM',
-      totalHours: '6h',
-    },
-    {
-      day: '08',
-      month: 'June',
-      dayOfWeek: 'Sun',
-      date: new Date('2025-06-08'),
-      punchIn: '09:00 AM',
-      punchOut: '06:00 PM',
-      totalHours: '9h',
-    },
-    {
-      day: '09',
-      month: 'June',
-      dayOfWeek: 'Mon',
-      date: new Date('2025-06-09'),
-      punchIn: '08:55 AM',
-      punchOut: '05:45 PM',
-      totalHours: '8h 50m',
-    },
-    {
-      day: '10',
-      month: 'June',
-      dayOfWeek: 'Tue',
-      date: new Date('2025-06-10'),
-      punchIn: '09:20 AM',
-      punchOut: '06:15 PM',
-      totalHours: '8h 55m',
-    },
-  ].sort((a, b) => new Date(b.date) - new Date(a.date));
-
-  const punchInTime = '09:00 AM';
-  const punchOutTime = '06:00 PM';
-  const totalHours = '9h 00m';
+const latestRecord = AttendanceData?.data?.[AttendanceData.data.length - 1] || {};
 
   return (
     <SafeAreaView style={containerStyle.container} edges={['top', 'bottom']}>
@@ -268,8 +170,8 @@ const AttendanceScreen = ({ navigation }) => {
                 flex: 1,
                 textAlign: 'center',
                 color: 'white',
-                fontFamily: 'Inter-SemiBold',
-                fontSize: SF(14),
+                fontFamily: 'Inter-Medium',
+                fontSize: SF(12),
               }}
             >
               {heading}
@@ -280,7 +182,6 @@ const AttendanceScreen = ({ navigation }) => {
           data={filteredDaysData.length > 0 ? filteredDaysData : AttendanceData?.data || []}
           keyExtractor={(item, index) => `${item.date}-${index}`}
           renderItem={({ item, index }) => {
-            // date को format करो (dd/mm/yyyy → dd Month)
             const formattedDate = moment(item.date, "DD/MM/YYYY").format("DD MMM");
 
             return (
