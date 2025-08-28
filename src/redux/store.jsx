@@ -1,13 +1,13 @@
 import { configureStore } from '@reduxjs/toolkit';
 import authReducer from './slices/authSlice';
-import FlightData from './slices/FlightStore';
 import loginReducer from './slices/LoginSlice';
+import AttendanceReducer from './slices/attendanceSlice';
 
 const store = configureStore({
   reducer: {
     auth: authReducer,
-    flightStore: FlightData,
-    auth_credencials:loginReducer
+    auth_credencials: loginReducer,
+    attendance: AttendanceReducer
   },
 });
 

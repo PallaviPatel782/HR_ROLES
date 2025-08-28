@@ -46,60 +46,60 @@ const LoginScreen = () => {
     return true;
   };
 
-const handleLogin = async () => {
-  if (!validateForm()) return;
+  const handleLogin = async () => {
+    if (!validateForm()) return;
 
-  const payload = {
-    email: userName.trim(),
-    password: password.trim(),
-  };
+    const payload = {
+      email: userName.trim(),
+      password: password.trim(),
+    };
 
-  console.log("📤 Login Payload:", payload);
+    console.log("Login Payload:", payload);
 
-  setLoading(true);
-  try {
-    const response = await axios.post(LOGIN_API, payload, {
-      headers: { 'Content-Type': 'application/json' }
-    });
-
-    console.log("📥 API Response:", response?.data);
-
-    if (response?.data?.user && response?.data?.token) {
-      await AsyncStorage.setItem('authToken', response.data.token);
-      await AsyncStorage.setItem('userInfo', JSON.stringify(response.data.user));
-
-      showMessage({
-        message: "Login Successful",
-        type: "success",
-        icon: "success",
-        duration: 3000,
+    setLoading(true);
+    try {
+      const response = await axios.post(LOGIN_API, payload, {
+        headers: { 'Content-Type': 'application/json' }
       });
 
-      navigation.reset({
-        index: 0,
-        routes: [{ name: "AppStack" }],
-      });
-    } else {
+      console.log("API Response:", response?.data);
+
+      if (response?.data?.user && response?.data?.token) {
+        await AsyncStorage.setItem('authToken', response.data.token);
+        await AsyncStorage.setItem('userInfo', JSON.stringify(response.data.user));
+
+        showMessage({
+          message: "Login Successful",
+          type: "success",
+          icon: "success",
+          duration: 3000,
+        });
+
+        navigation.reset({
+          index: 0,
+          routes: [{ name: "AppStack" }],
+        });
+      } else {
+        showMessage({
+          message: response?.data?.message || 'Invalid credentials',
+          type: 'danger',
+          icon: 'danger',
+          duration: 3000,
+        });
+      }
+    } catch (error) {
+      console.error("Login Error:", error?.response?.data || error.message);
+
       showMessage({
-        message: response?.data?.message || 'Invalid credentials',
+        message: error.response?.data?.message || 'Something went wrong',
         type: 'danger',
         icon: 'danger',
         duration: 3000,
       });
+    } finally {
+      setLoading(false);
     }
-  } catch (error) {
-    console.error("❌ Login Error:", error?.response?.data || error.message);
-
-    showMessage({
-      message: error.response?.data?.message || 'Something went wrong',
-      type: 'danger',
-      icon: 'danger',
-      duration: 3000,
-    });
-  } finally {
-    setLoading(false);
-  }
-};
+  };
 
 
 
@@ -127,7 +127,7 @@ const handleLogin = async () => {
           <Text style={styles.heading}>Get Started</Text>
           <Text style={styles.welcome}>Welcome to Trinexa Global !</Text>
 
-          <View style={{marginVertical:SH(20)}}>
+          <View style={{ marginVertical: SH(20) }}>
             <Text style={formStyle.title}>Email Address</Text>
             <View style={styles.inputContainer}>
               <Ionicons name="mail-outline" size={18} color={Colors.darkGray} />
