@@ -9,6 +9,8 @@ import { containerStyle } from '../../Styles/ScreenContainer';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AppHeader from '../../Components/AppHeader';
 import Colors from '../../utils/Colors';
+import { showMessage } from 'react-native-flash-message';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const windowHeight = Dimensions.get('window').height;
 const windowWidth = Dimensions.get('window').width;
@@ -54,6 +56,40 @@ const Companyprofilescreen = ({ navigation }) => {
       ...prev,
       [key]: !prev[key],
     }));
+  };
+
+    const handleLogout = async () => {
+    console.log("logout button is pressed");
+
+    try {
+      await AsyncStorage.removeItem('authToken');
+      await AsyncStorage.removeItem('userInfo');
+      console.log("authToken & userInfo cleared");
+
+      showMessage({
+        message: 'Logout successful',
+        description: 'You have been logged out.',
+        type: 'success',
+        icon: 'success',
+        duration: 3000,
+      });
+
+      navigation.reset({
+        index: 0,
+        routes: [{ name: "AuthStack" }],
+      });
+
+    } catch (error) {
+      console.error('Logout error:', error);
+
+      showMessage({
+        message: 'Logout failed',
+        description: 'Something went wrong while logging out.',
+        type: 'danger',
+        icon: 'danger',
+        duration: 3000,
+      });
+    }
   };
 
   return (
@@ -172,7 +208,7 @@ const Companyprofilescreen = ({ navigation }) => {
        <View>
          <TouchableOpacity
           style={[styles.btn, { paddingHorizontal: windowWidth * 0.08 }]}
-          onPress={() => alert('Logout pressed')}
+          onPress={handleLogout}
           activeOpacity={0.7}
         >
           <AntDesignIcon name="logout" size={24} color={Colors.darkBlue} />

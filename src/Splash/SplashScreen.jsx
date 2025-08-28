@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, Image, StatusBar } from 'react-native';
+import { View, Text, StyleSheet, Image } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import GradientButton from '../Components/GradientButton';
 import { containerStyle } from '../Styles/ScreenContainer';
@@ -8,12 +8,12 @@ import Colors from '../utils/Colors';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 const SplashScreen = () => {
+  
   const navigation = useNavigation();
 
   return (
-    <SafeAreaView style={{ flex: 1 }} edges={['top', 'bottom']}>
-      <StatusBar barStyle="dark-content" backgroundColor={Colors.background} />
-      <View style={[containerStyle.container, { backgroundColor: Colors.light }]}>
+   <SafeAreaView style={containerStyle.container} edges={['top', 'bottom']}>
+      <View style={{flex:1}}>
         <View style={styles.contentContainer}>
           <Image
             source={require('../assests/Images/hrms.png')}

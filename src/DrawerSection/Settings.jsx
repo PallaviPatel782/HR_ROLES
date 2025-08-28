@@ -8,16 +8,45 @@ import Colors from '../utils/Colors';
 import Icon from 'react-native-vector-icons/Ionicons';
 import GradientButton from '../Components/GradientButton';
 import geoLogo from '../assests/Images/logo.png';
+import { showMessage } from 'react-native-flash-message';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const Settings = ({ navigation }) => {
   const [isNotificationOn, setIsNotificationOn] = useState(true);
 
-  const handleLogout = () => {
-    Alert.alert('Logout', 'Are you sure you want to log out?', [
-      { text: 'Cancel', style: 'cancel' },
-      { text: 'Logout', onPress: () => console.log('User logged out') },
-    ]);
-  };
+   const handleLogout = async () => {
+     console.log("logout button is pressed");
+ 
+     try {
+       await AsyncStorage.removeItem('authToken');
+       await AsyncStorage.removeItem('userInfo');
+       console.log("authToken & userInfo cleared");
+ 
+       showMessage({
+         message: 'Logout successful',
+         description: 'You have been logged out.',
+         type: 'success',
+         icon: 'success',
+         duration: 3000,
+       });
+ 
+       navigation.reset({
+         index: 0,
+         routes: [{ name: "AuthStack" }],
+       });
+ 
+     } catch (error) {
+       console.error('Logout error:', error);
+ 
+       showMessage({
+         message: 'Logout failed',
+         description: 'Something went wrong while logging out.',
+         type: 'danger',
+         icon: 'danger',
+         duration: 3000,
+       });
+     }
+   };
 
   const companyLink = {
     label: 'Geo Holidays',

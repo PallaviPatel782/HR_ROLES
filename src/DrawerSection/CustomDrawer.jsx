@@ -1,8 +1,6 @@
 import { Text, View, Image, TouchableOpacity, ScrollView, Alert } from 'react-native';
-import React from 'react';
+import React,{useState,useEffect} from 'react';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-import Feather from 'react-native-vector-icons/Feather';
 import { styles } from '../Styles/CustomerStyle';
 import Colors from '../utils/Colors';
 import { SH } from '../utils/Dimensions';
@@ -10,8 +8,30 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { containerStyle } from '../Styles/ScreenContainer';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { showMessage } from 'react-native-flash-message';
+import FontAwesome from 'react-native-vector-icons/FontAwesome';
 
 const CustomDrawer = ({ navigation }) => {
+  const [email,setEmail]= useState(null);
+  const [firstName, setFirstName] = useState(null);
+  const [lastName, setLastName] = useState(null);
+
+    useEffect(() => {
+      const fetchUserInfo = async () => {
+        try {
+          const userInfoString = await AsyncStorage.getItem('userInfo');
+          if (userInfoString) {
+            const userInfo = JSON.parse(userInfoString);
+            console.log("userInfo",userInfo);
+            setFirstName(userInfo.firstName);
+            setLastName(userInfo.lastName);
+            setEmail(userInfo.email)
+          }
+        } catch (error) {
+          console.error('Error fetching user info:', error);
+        }
+      };
+      fetchUserInfo();
+    }, []);
 
   const topMenuItems = [
     { label: 'Dashboard', icon: 'grid-outline', IconComponent: Ionicons, screen: 'Hr' },
@@ -85,20 +105,21 @@ const CustomDrawer = ({ navigation }) => {
     <SafeAreaView style={[containerStyle.container, { paddingTop: SH(15) }]} edges={['top', 'bottom']}>
       <View style={styles.profileSection}>
         <TouchableOpacity onPress={() => navigation.navigate('Profile')}>
-          <Image
+          {/* <Image
             source={require('../assests/Images/dummyProfile.jpg')}
             style={styles.avatar}
-          />
+          /> */}
+          <FontAwesome name={'user-circle'} color={Colors.dark} size={30}/>
         </TouchableOpacity>
         <TouchableOpacity style={styles.userInfo} onPress={() => navigation.navigate('Profile')}>
-          <Text style={styles.name}>Rubby Doe</Text>
-          <Text style={styles.email}>rubbydoe@email.com</Text>
+          <Text style={styles.name}>{firstName} {lastName}</Text>
+          <Text style={styles.email}>{email}</Text>
         </TouchableOpacity>
       </View>
 
       <View style={{ flex: 1 }}>
         <ScrollView showsVerticalScrollIndicator={false}>
-          {/* Top Menu */}
+
           {topMenuItems.map((item, index) => {
             const Icon = item.IconComponent;
             return (
@@ -107,9 +128,7 @@ const CustomDrawer = ({ navigation }) => {
                 style={styles.menuItem}
                 onPress={() => handleNavigation(item.screen)}
               >
-                <Icon name={item.icon} size={15} color={Colors.gradientBlue
-
-                } style={styles.icon} />
+                <Icon name={item.icon} size={15} color={Colors.gradientBlue} style={styles.icon} />
                 <Text style={styles.menuText1}>{item.label}</Text>
               </TouchableOpacity>
             );
