@@ -1,4 +1,4 @@
-package com.hrms
+package com.trinexa.hrms
 
 import com.facebook.react.ReactActivity
 import com.facebook.react.ReactActivityDelegate

@@ -1,4 +1,4 @@
-package com.hrms
+package com.trinexa.hrms
 
 import android.app.Application
 import com.facebook.react.PackageList

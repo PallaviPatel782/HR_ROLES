@@ -13,10 +13,10 @@ android {
     buildToolsVersion rootProject.ext.buildToolsVersion
     compileSdk rootProject.ext.compileSdkVersion
 
-    namespace "com.hrms"
+    namespace "com.trinexa.hrms"
 
     defaultConfig {
-        applicationId "com.hrms"
+        applicationId "com.trinexa.hrms"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
