@@ -13,7 +13,8 @@ export const formStyle = StyleSheet.create({
         marginVertical: SH(7),
         borderRadius: 5,
         paddingLeft: SW(15),
-        color:Colors.dark
+        color:Colors.dark,
+        height:SH(40)
     },
     title: {
         fontFamily: "Inter-Medium",

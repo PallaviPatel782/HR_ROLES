@@ -3,6 +3,11 @@ import { SH, SW, SF } from "../utils/Dimensions";
 import Colors from "../utils/Colors";
 
 const styles = StyleSheet.create({
+    leaveButton:{
+      backgroundColor:Colors.gradientBlue,
+      borderRadius:5,
+      marginHorizontal:SW(5)
+    },
     tabContainer: {
         flexDirection: 'row',
         marginVertical: SH(10),

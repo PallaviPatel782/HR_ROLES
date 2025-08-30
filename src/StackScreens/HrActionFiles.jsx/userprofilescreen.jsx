@@ -1,13 +1,8 @@
-import { View, Text, TouchableOpacity, Image, TextInput, ScrollView, Modal, Alert } from 'react-native';
+import { View, Text, TouchableOpacity, Image, TextInput, ScrollView, Alert, Modal, TouchableWithoutFeedback } from 'react-native';
 import React, { useState } from 'react';
-import LogoutIcon from 'react-native-vector-icons/FontAwesome';
-import CameraIcon from 'react-native-vector-icons/FontAwesome';
 import DownIcon from 'react-native-vector-icons/Entypo';
-import DashboardIcon from 'react-native-vector-icons/MaterialCommunityIcons';
-import LinkIcon from 'react-native-vector-icons/Feather';
 import { SF, SH, SW } from '../../utils/Dimensions';
 import { formStyle } from '../../Styles/formStyle';
-// import { Calendar } from 'react-native-calendars';
 import { containerStyle } from '../../Styles/ScreenContainer';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AppHeader from '../../Components/AppHeader';
@@ -15,10 +10,11 @@ import Colors from '../../utils/Colors';
 import styles from '../../Styles/userProfileStyle';
 import DocumentPicker from '@react-native-documents/picker';
 import { showMessage } from 'react-native-flash-message';
+import { Calendar } from "react-native-calendars";
 
 const userprofilescreen = ({ navigation }) => {
-  const [isStartModalVisible, setStartModalVisible] = useState(false);
-  const [startDate, setStartDate] = useState('');
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [startDate, setStartDate] = useState(null);
 
   const [documents, setDocuments] = useState({
     pan: null,
@@ -54,24 +50,33 @@ const userprofilescreen = ({ navigation }) => {
     );
   };
 
-  const pickDocument = async (field) => {
-  try {
-    const res = await DocumentPicker.pick({
-      type: [DocumentPicker.types.allFiles],
-    });
+  const onDateChange = (event, selectedDate) => {
+    setShowDatePicker(false);
+    if (selectedDate) {
+      const formattedDate = selectedDate.toISOString().split('T')[0]; // YYYY-MM-DD
+      setStartDate(formattedDate);
+    }
+  };
 
-    if (res) {
-      setDocuments((prev) => ({ ...prev, [field]: res }));
-      Alert.alert("Uploaded!", `${res.name} selected for ${field}`);
+
+  const pickDocument = async (field) => {
+    try {
+      const res = await DocumentPicker.pick({
+        type: [DocumentPicker.types.allFiles],
+      });
+
+      if (res) {
+        setDocuments((prev) => ({ ...prev, [field]: res }));
+        Alert.alert("Uploaded!", `${res.name} selected for ${field}`);
+      }
+    } catch (err) {
+      if (DocumentPicker.isCancel(err)) {
+        console.log("User cancelled picker");
+      } else {
+        console.log("DocumentPicker Error: ", err);
+      }
     }
-  } catch (err) {
-    if (DocumentPicker.isCancel(err)) {
-      console.log("User cancelled picker");
-    } else {
-      console.log("DocumentPicker Error: ", err);
-    }
-  }
-};
+  };
 
   return (
     <SafeAreaView style={containerStyle.container} edges={['top', 'bottom']}>
@@ -134,8 +139,8 @@ const userprofilescreen = ({ navigation }) => {
 
           <Text style={formStyle.title}>Date of Birth</Text>
           <View style={styles.dobInputView}>
-            <Text style={styles.txtInput}>{startDate || '1995-05-20'}</Text>
-            <TouchableOpacity onPress={() => setStartModalVisible(true)}>
+            <Text style={styles.txtInput}>{startDate}</Text>
+            <TouchableOpacity onPress={() => setShowDatePicker(true)}>
               <DownIcon name='chevron-down' size={25} color={Colors.darkGray} />
             </TouchableOpacity>
           </View>
@@ -267,22 +272,30 @@ const userprofilescreen = ({ navigation }) => {
       </ScrollView>
 
       <Modal
-        transparent={true}
-        visible={isStartModalVisible}
-        onRequestClose={() => setStartModalVisible(false)}
+        visible={showDatePicker}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setShowDatePicker(false)}
       >
-        <View style={styles.modalContainer}>
-          <View style={styles.calendarContainer}>
-            {/* <Calendar
-                            markingType={'period'}
-                            markedDates={{
-                                [startDate]: { selected: true, color: 'blue', textColor: 'white' },
-                            }}
-                            onDayPress={onStartDateSelect}
-                        /> */}
+        <TouchableWithoutFeedback onPress={() => setShowDatePicker(false)}>
+          <View style={styles.modalContainer}>
+            <TouchableWithoutFeedback>
+              <View style={styles.calendarBox}>
+                <Calendar
+                  onDayPress={(day) => {
+                    setStartDate(day.dateString);
+                    setShowDatePicker(false);
+                  }}
+                  markedDates={{
+                    [startDate]: { selected: true, selectedColor: "#2c3e50" },
+                  }}
+                />
+              </View>
+            </TouchableWithoutFeedback>
           </View>
-        </View>
+        </TouchableWithoutFeedback>
       </Modal>
+
     </SafeAreaView>
   );
 };

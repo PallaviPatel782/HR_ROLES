@@ -55,7 +55,7 @@ const styles = StyleSheet.create({
         fontFamily: "Inter-Medium",
         fontSize: SF(13),
         textTransform: "capitalize",
-        color:Colors.dark
+        color: Colors.dark
     },
     dobInputView: {
         flexDirection: 'row',
@@ -91,7 +91,7 @@ const styles = StyleSheet.create({
     sameTxt: {
         fontFamily: "Inter-Medium",
         fontSize: SF(15),
-        color:Colors.dark
+        color: Colors.dark
     },
     buttonRow: {
         flexDirection: 'row',
@@ -122,15 +122,14 @@ const styles = StyleSheet.create({
     },
     modalContainer: {
         flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        backgroundColor: 'rgba(0,0,0,0.5)',
+        justifyContent: "center",
+        backgroundColor: "rgba(0,0,0,0.5)",
+        padding: SW(16),
     },
-    calendarContainer: {
-        backgroundColor: 'white',
-        borderRadius: 10,
-        paddingHorizontal: SW(20),
-        paddingVertical: SH(20),
+    calendarBox: {
+        backgroundColor: "#fff",
+        borderRadius: SW(12),
+        padding: SW(16),
     },
     documentsTxt: {
         fontFamily: "Inter-Medium",

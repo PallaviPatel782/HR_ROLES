@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { StyleSheet, Text, View, TextInput, Image, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
+import { StyleSheet, Text, View, TextInput, Image, ScrollView, KeyboardAvoidingView, Platform, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { containerStyle } from '../../Styles/ScreenContainer';
 import GradientButton from '../../Components/GradientButton';
@@ -7,6 +7,7 @@ import { SH, SF, SW } from '../../utils/Dimensions';
 import Colors from '../../utils/Colors';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AppHeader from '../../Components/AppHeader';
+import { showMessage } from 'react-native-flash-message';
 
 const OtpVerification = ({ navigation }) => {
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
@@ -20,6 +21,15 @@ const OtpVerification = ({ navigation }) => {
       inputs.current[index + 1].focus();
     }
   };
+
+  const resent = () => {
+    showMessage(
+      {
+        message: 'Otp Resend successfully',
+        type: "success"
+      }
+    )
+  }
 
   const handleKeyPress = ({ nativeEvent }, index) => {
     if (nativeEvent.key === 'Backspace' && otp[index] === '' && index > 0) {
@@ -70,13 +80,15 @@ const OtpVerification = ({ navigation }) => {
 
           <GradientButton
             title="Confirm OTP"
-            onPress={() => navigation.navigate('App')}
+            onPress={() => navigation.navigate('CreateNewPassword')}
             style={{ marginTop: SH(30) }}
           />
 
           <Text style={styles.bottomtext}>
             Didn't receive code?{' '}
-            <Text style={{ color: Colors.gradientBlue }}>Resend</Text>
+            <TouchableOpacity onPress={() => resent()}>
+              <Text style={{ color: Colors.gradientBlue }}>Resend</Text>
+            </TouchableOpacity>
           </Text>
         </ScrollView>
       </KeyboardAvoidingView>
@@ -108,7 +120,8 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontSize: SF(12),
     fontFamily: "Inter-Bold",
-    textAlignVertical: 'center'
+    textAlignVertical: 'center',
+    color: Colors.dark
   },
   button: {
     marginTop: SH(20),

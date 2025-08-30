@@ -33,6 +33,9 @@ import PolicyDetail2 from "../StackScreens/Policies/PolicyDetail2";
 import HelpCenterScreen from "../DrawerSection/HelpCenterScreen";
 import TermsAndConditionsScreen from "../DrawerSection/TermsAndConditionsScreen";
 import AnnouncementScreen from "../StackScreens/HrActionFiles.jsx/announcementScreen";
+import CreateNewPassword from "../authentication/NewPassword/CreateNewPassword";
+import CreateLeaveScreen from "../StackScreens/HrActionFiles.jsx/CreateLeaveScreen";
+import ViewReceiptScreen from "../StackScreens/HrActionFiles.jsx/ViewReceiptScreen";
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -74,6 +77,7 @@ export const AuthStack = () => {
       <Stack.Screen name="LoginScreen" component={LoginScreen} />
       <Stack.Screen name="OtpVerification" component={OtpVerification} />
       <Stack.Screen name="ForgotPassword" component={ForgotPassword} />
+      <Stack.Screen name="CreateNewPassword" component={CreateNewPassword} />
     </Stack.Navigator>
   );
 };
@@ -86,6 +90,8 @@ const AppStack = () => {
       <Stack.Screen name="getleavescreen" component={getleavescreen} />
       <Stack.Screen name="AnnouncementScreen" component={AnnouncementScreen} />
       <Stack.Screen name="salaryscreen" component={salaryscreen} />
+      <Stack.Screen name="ViewReceiptScreen" component={ViewReceiptScreen} />
+      <Stack.Screen name="CreateLeaveScreen" component={CreateLeaveScreen} />
       <Stack.Screen name="userprofilescreen" component={userprofilescreen} />
       <Stack.Screen name="companyprofilescreen" component={companyprofilescreen} />
       <Stack.Screen name="attendanceScreen" component={attendanceScreen} />

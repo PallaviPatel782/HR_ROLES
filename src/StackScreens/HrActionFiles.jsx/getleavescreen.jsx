@@ -9,6 +9,7 @@ import { containerStyle } from '../../Styles/ScreenContainer';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import FilterModal from '../../Components/FilterModal';
 import moment from 'moment';
+import { SH } from '../../utils/Dimensions';
 
 const allLeaves = [
   {
@@ -65,64 +66,77 @@ const getleavescreen = ({ navigation }) => {
     dateRange: { from: null, to: null },
   });
 
-const filteredLeaves = allLeaves.filter((item) => {
-  const statusMatch =
-    selectedStatus === 'All' || item.status === selectedStatus;
+  const filteredLeaves = allLeaves.filter((item) => {
+    const statusMatch =
+      selectedStatus === 'All' || item.status === selectedStatus;
 
-  const categoryMatch =
-    localFilters.status[item.category] || localFilters.status['All'];
+    const categoryMatch =
+      localFilters.status[item.category] || localFilters.status['All'];
 
-  let dateMatch = true;
-  const from = localFilters.dateRange.from;
-  const to = localFilters.dateRange.to;
+    let dateMatch = true;
+    const from = localFilters.dateRange.from;
+    const to = localFilters.dateRange.to;
 
-  if (from && to) {
-    let itemFromDate, itemToDate;
+    if (from && to) {
+      let itemFromDate, itemToDate;
 
-    if (item.date.includes(' - ')) {
-      const [start, end] = item.date.split(' - ');
-      itemFromDate = moment(start.trim(), 'ddd, DD MMM YYYY').startOf('day');
-      itemToDate = moment(end.trim(), 'ddd, DD MMM YYYY').endOf('day');
-    } else {
-      itemFromDate = moment(item.date.trim(), 'ddd, DD MMM YYYY').startOf('day');
-      itemToDate = itemFromDate.clone().endOf('day');
+      if (item.date.includes(' - ')) {
+        const [start, end] = item.date.split(' - ');
+        itemFromDate = moment(start.trim(), 'ddd, DD MMM YYYY').startOf('day');
+        itemToDate = moment(end.trim(), 'ddd, DD MMM YYYY').endOf('day');
+      } else {
+        itemFromDate = moment(item.date.trim(), 'ddd, DD MMM YYYY').startOf('day');
+        itemToDate = itemFromDate.clone().endOf('day');
+      }
+
+      const fromDate = moment(from).startOf('day');
+      const toDate = moment(to).endOf('day');
+
+      // Check overlap of date range
+      console.log("dateMatch", dateMatch);
+      dateMatch = itemFromDate.isSameOrBefore(toDate) && itemToDate.isSameOrAfter(fromDate);
     }
 
-    const fromDate = moment(from).startOf('day');
-    const toDate = moment(to).endOf('day');
-
-    // Check overlap of date range
-    console.log("dateMatch",dateMatch);
-    dateMatch = itemFromDate.isSameOrBefore(toDate) && itemToDate.isSameOrAfter(fromDate);
-  }
-
-  return statusMatch && categoryMatch && dateMatch;
-});
-
-
-const onApplyFilters = (appliedFilters) => {
-  // console.log('Applied Filters:', appliedFilters);
-  // console.log('From raw:', appliedFilters.dateRange.from);
-  // console.log('To raw:', appliedFilters.dateRange.to);
-  // console.log('Is valid from date:', moment(appliedFilters.dateRange.from).isValid());
-  // console.log('Is valid to date:', moment(appliedFilters.dateRange.to).isValid());
-
-  setLocalFilters({
-    status: appliedFilters.status,
-    dateRange: {
-      from: moment(appliedFilters.dateRange.from).isValid()
-        ? moment(appliedFilters.dateRange.from).toDate()
-        : null,
-      to: moment(appliedFilters.dateRange.to).isValid()
-        ? moment(appliedFilters.dateRange.to).toDate()
-        : null,
-    },
+    return statusMatch && categoryMatch && dateMatch;
   });
-};
+
+
+  const onApplyFilters = (appliedFilters) => {
+    // console.log('Applied Filters:', appliedFilters);
+    // console.log('From raw:', appliedFilters.dateRange.from);
+    // console.log('To raw:', appliedFilters.dateRange.to);
+    // console.log('Is valid from date:', moment(appliedFilters.dateRange.from).isValid());
+    // console.log('Is valid to date:', moment(appliedFilters.dateRange.to).isValid());
+
+    setLocalFilters({
+      status: appliedFilters.status,
+      dateRange: {
+        from: moment(appliedFilters.dateRange.from).isValid()
+          ? moment(appliedFilters.dateRange.from).toDate()
+          : null,
+        to: moment(appliedFilters.dateRange.to).isValid()
+          ? moment(appliedFilters.dateRange.to).toDate()
+          : null,
+      },
+    });
+  };
 
   return (
     <SafeAreaView style={containerStyle.container} edges={['top', 'bottom']}>
-      <AppHeader navigation={navigation} title="Leaves" />
+      <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
+        <AppHeader navigation={navigation} title="Leaves" />
+        <View style={{ alignSelf: "flex-end", flexDirection: "row", alignItems: "center", marginBottom: SH(10) }}>
+          <TouchableOpacity onPress={() => setFilterModalVisible(true)} style={{ marginLeft: 10, paddingHorizontal: 5 }}>
+            <MaterialIcons name="filter-list" size={26} color={Colors.gradientBlue} />
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => navigation.navigate('CreateLeaveScreen')}
+            style={styles.leaveButton}
+          >
+            <MaterialIcons name="add" size={20} color={Colors.light} />
+          </TouchableOpacity>
+        </View>
+      </View>
       <View>
         <View style={styles.tabContainer}>
           {['All', 'Approved', 'Pending', 'Declined'].map((status) => (
@@ -140,11 +154,6 @@ const onApplyFilters = (appliedFilters) => {
               </Text>
             </TouchableOpacity>
           ))}
-        </View>
-        <View style={{ alignSelf: "flex-end" }}>
-          <TouchableOpacity onPress={() => setFilterModalVisible(true)} style={{ marginLeft: 10, paddingHorizontal: 5 }}>
-            <MaterialIcons name="filter-list" size={26} color={Colors.gradientBlue} />
-          </TouchableOpacity>
         </View>
       </View>
       <ScrollView style={styles.dataContainer} showsVerticalScrollIndicator={false}>
@@ -176,9 +185,9 @@ const LeaveCard = ({ type, date, status, color, bg, category }) => (
     <Text style={styles.cardDate}>{date}</Text>
     <View style={styles.cardBottom}>
       <Text style={styles.cardCategory}>{category}</Text>
-      <TouchableOpacity style={styles.rightBtn}>
+      {/* <TouchableOpacity style={styles.rightBtn}>
         <RightIcon name="right" size={16} color={Colors.light} />
-      </TouchableOpacity>
+      </TouchableOpacity> */}
     </View>
   </View>
 );

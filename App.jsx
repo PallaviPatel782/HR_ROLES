@@ -6,7 +6,6 @@ import FlashMessage from "react-native-flash-message";
 import store from './src/redux/store';
 import { Provider } from 'react-redux';
 import { View, StyleSheet, StatusBar } from 'react-native';
-import Colors from './src/utils/Colors';
 
 const App = () => {
   return (
