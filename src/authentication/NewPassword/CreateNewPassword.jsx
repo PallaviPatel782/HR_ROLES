@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View, TextInput, TouchableOpacity } from 'react-native';
+import { StyleSheet, Text, View, TextInput, TouchableOpacity, KeyboardAvoidingView, ScrollView, Platform } from 'react-native';
 import React, { useState } from 'react';
 import AppHeader from '../../Components/AppHeader';
 import { containerStyle } from '../../Styles/ScreenContainer';
@@ -13,9 +13,11 @@ import { showMessage } from 'react-native-flash-message';
 const CreateNewPassword = ({ navigation }) => {
     const [newPassword, setNewPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
-    const [secure, setSecure] = useState(true);
+    const [secureNew, setSecureNew] = useState(true);
+    const [secureConfirm, setSecureConfirm] = useState(true);
 
-    const toggleSecure = () => setSecure(!secure);
+    const toggleSecureNew = () => setSecureNew(!secureNew);
+    const toggleSecureConfirm = () => setSecureConfirm(!secureConfirm);
 
     const handleSubmit = () => {
         if (!newPassword || !confirmPassword) {
@@ -44,66 +46,78 @@ const CreateNewPassword = ({ navigation }) => {
 
     return (
         <SafeAreaView style={containerStyle.container} edges={['top', 'bottom']}>
-            <AppHeader navigation={navigation} title="Create New Password" />
+            <KeyboardAvoidingView
+                behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+                style={{ flex: 1 }}
+                keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
+            >
+                <AppHeader navigation={navigation} title="Create New Password" />
 
-            <View style={styles.bannerBox}>
-                <Ionicons
-                    name="lock-closed-outline"
-                    size={34}
-                    color={Colors.light}
-                    style={styles.lock}
-                />
-                <Text style={styles.bannerTitle}>Create Your New Password</Text>
-                <Text style={styles.bannerText}>
-                    Set a strong password to secure your account and log in safely.
-                </Text>
-            </View>
+                <ScrollView
+                    contentContainerStyle={{ flexGrow: 1 }}
+                    keyboardShouldPersistTaps="handled"
+                    showsVerticalScrollIndicator={false}>
 
-            <View style={styles.content}>
-                <Text style={formStyle.title}>New Password</Text>
-                <View style={{ position: 'relative' }}>
-                    <TextInput
-                        style={formStyle.inputBox}
-                        secureTextEntry={secure}
-                        placeholder="Enter new password"
-                        value={newPassword}
-                        onChangeText={setNewPassword}
-                        placeholderTextColor={Colors.darkGray}
-                    />
-                    <TouchableOpacity onPress={toggleSecure} style={styles.eyeBtn}>
+                    <View style={styles.bannerBox}>
                         <Ionicons
-                            name={secure ? 'eye-off-outline' : 'eye-outline'}
-                            size={20}
-                            color="#555"
+                            name="lock-closed-outline"
+                            size={34}
+                            color={Colors.light}
+                            style={styles.lock}
                         />
-                    </TouchableOpacity>
-                </View>
+                        <Text style={styles.bannerTitle}>Create Your New Password</Text>
+                        <Text style={styles.bannerText}>
+                            Set a strong password to secure your account and log in safely.
+                        </Text>
+                    </View>
 
-                <Text style={formStyle.title}>Confirm New Password</Text>
-                <View style={{ position: 'relative' }}>
-                    <TextInput
-                        style={formStyle.inputBox}
-                        secureTextEntry={secure}
-                        placeholder="Re-enter new password"
-                        value={confirmPassword}
-                        onChangeText={setConfirmPassword}
-                        placeholderTextColor={Colors.darkGray}
-                    />
-                    <TouchableOpacity onPress={toggleSecure} style={styles.eyeBtn}>
-                        <Ionicons
-                            name={secure ? 'eye-off-outline' : 'eye-outline'}
-                            size={20}
-                            color="#555"
+                    <View style={styles.content}>
+                        <Text style={formStyle.title}>New Password</Text>
+                        <View style={{ position: 'relative' }}>
+                            <TextInput
+                                style={formStyle.inputBox}
+                                secureTextEntry={secureNew}
+                                placeholder="Enter new password"
+                                value={newPassword}
+                                onChangeText={setNewPassword}
+                                placeholderTextColor={Colors.darkGray}
+                            />
+                            <TouchableOpacity onPress={toggleSecureNew} style={styles.eyeBtn}>
+                                <Ionicons
+                                    name={secureNew ? 'eye-off-outline' : 'eye-outline'}
+                                    size={20}
+                                    color="#555"
+                                />
+                            </TouchableOpacity>
+                        </View>
+
+                        <Text style={formStyle.title}>Confirm New Password</Text>
+                        <View style={{ position: 'relative' }}>
+                            <TextInput
+                                style={formStyle.inputBox}
+                                secureTextEntry={secureConfirm}
+                                placeholder="Re-enter new password"
+                                value={confirmPassword}
+                                onChangeText={setConfirmPassword}
+                                placeholderTextColor={Colors.darkGray}
+                            />
+                            <TouchableOpacity onPress={toggleSecureConfirm} style={styles.eyeBtn}>
+                                <Ionicons
+                                    name={secureConfirm ? 'eye-off-outline' : 'eye-outline'}
+                                    size={20}
+                                    color="#555"
+                                />
+                            </TouchableOpacity>
+                        </View>
+
+                        <GradientButton
+                            title="Create Password"
+                            onPress={handleSubmit}
+                            style={{ marginTop: SH(40) }}
                         />
-                    </TouchableOpacity>
-                </View>
-
-                <GradientButton
-                    title="Create Password"
-                    onPress={handleSubmit}
-                    style={{ marginTop: SH(40) }}
-                />
-            </View>
+                    </View>
+                </ScrollView>
+            </KeyboardAvoidingView>
         </SafeAreaView>
     );
 };

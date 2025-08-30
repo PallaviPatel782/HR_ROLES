@@ -1,4 +1,4 @@
-import { StyleSheet, Text, TextInput, View, TouchableOpacity, Image, ScrollView, Alert } from 'react-native';
+import { StyleSheet, Text, TextInput, View, TouchableOpacity, Image, ScrollView, Alert, KeyboardAvoidingView, Platform } from 'react-native';
 import React, { useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { containerStyle } from '../../Styles/ScreenContainer';
@@ -75,107 +75,117 @@ const Profile = ({ navigation }) => {
 
     return (
         <SafeAreaView style={containerStyle.container} edges={['top', 'bottom']}>
-            <AppHeader navigation={navigation} title="My Profile" />
-            <ScrollView showsVerticalScrollIndicator={false}>
-                <View style={{ alignSelf: 'center', marginVertical: SH(10) }}>
-                    <View style={{ position: 'relative' }}>
-                        <Image
-                            source={
-                                profileUri
-                                    ? { uri: profileUri }
-                                    : require('../../assests/Images/dummyProfile.jpg')
-                            }
-                            style={{
-                                width: SW(100),
-                                height: SW(100),
-                                borderRadius: SW(100),
-                                borderWidth: 2,
-                                borderColor: Colors.darkBlue,
-                            }}
-                        />
+            <KeyboardAvoidingView
+                behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+                style={{ flex: 1 }}
+                keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
+            >
+                <AppHeader navigation={navigation} title="Profile" />
 
-                        <TouchableOpacity
-                            onPress={handleImagePick}
-                            style={{
-                                position: 'absolute',
-                                bottom: SH(1),
-                                right: SW(10),
-                                backgroundColor: '#fff',
-                                borderRadius: 20,
-                                paddingHorizontal: SW(6),
-                                paddingVertical: SH(6),
-                                borderWidth: 1,
-                                borderColor: '#ccc',
-                            }}
-                        >
-                            <FontAwesome name="camera" size={18} color={Colors.darkBlue} />
-                        </TouchableOpacity>
-                    </View>
-                </View>
-                <View style={formStyle.formStyle}>
-
-                    <Text style={formStyle.title}>Name</Text>
-                    <TextInput
-                        style={formStyle.inputBox}
-                        value={name}
-                        onChangeText={setName}
-                        placeholder='Name'
-                        placeholderTextColor={Colors.darkGray}
-                    />
-
-                    <Text style={formStyle.title}>Username</Text>
-                    <TextInput
-                        style={formStyle.inputBox}
-                        value={username}
-                        onChangeText={setUsername}
-                        placeholder='Username'
-                        placeholderTextColor={Colors.darkGray}
-                        keyboardType="email-address"
-                        autoCapitalize="none"
-                    />
-
-                    <Text style={formStyle.title}>Password</Text>
-                    <View style={styles.passwordContainer}>
-                        <TextInput
-                            style={[formStyle.inputBox, styles.passwordInput]}
-                            value={password}
-                            onChangeText={setPassword}
-                            placeholder='Password'
-                            placeholderTextColor={Colors.darkGray}
-                            secureTextEntry={!showPassword}
-                        />
-                        <TouchableOpacity
-                            style={styles.eyeIcon}
-                            onPress={() => setShowPassword(!showPassword)}
-                        >
-                            <Ionicons
-                                name={showPassword ? 'eye-off' : 'eye'}
-                                size={24}
-                                color={Colors.darkGray}
+                <ScrollView
+                    contentContainerStyle={{ flexGrow: 1 }}
+                    keyboardShouldPersistTaps="handled"
+                    showsVerticalScrollIndicator={false}>
+                    <View style={{ alignSelf: 'center', marginVertical: SH(10) }}>
+                        <View style={{ position: 'relative' }}>
+                            <Image
+                                source={
+                                    profileUri
+                                        ? { uri: profileUri }
+                                        : require('../../assests/Images/dummyProfile.jpg')
+                                }
+                                style={{
+                                    width: SW(100),
+                                    height: SW(100),
+                                    borderRadius: SW(100),
+                                    borderWidth: 2,
+                                    borderColor: Colors.darkBlue,
+                                }}
                             />
-                        </TouchableOpacity>
-                    </View>
 
-                    <Text style={formStyle.title}>Designation</Text>
-                    <TextInput
-                        style={formStyle.inputBox}
-                        value={designation}
-                        onChangeText={setDesignation}
-                        placeholder='Designation'
-                        placeholderTextColor={Colors.darkGray}
-                    />
-                    <View style={{ marginTop: SH(50) }}>
-                        <TouchableOpacity style={[styles.gradientButton, { backgroundColor: Colors.gradientBlue }]} onPress={() => navigation.navigate('App', {
-                            screen: 'ChangePassword'
-                        })}>
-                            <Text style={[styles.title, { color: Colors.light }]}>Change Password</Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity style={styles.gradientButton} onPress={handleLogout}>
-                            <Text style={[styles.title]}>Log Out</Text>
-                        </TouchableOpacity>
+                            <TouchableOpacity
+                                onPress={handleImagePick}
+                                style={{
+                                    position: 'absolute',
+                                    bottom: SH(1),
+                                    right: SW(10),
+                                    backgroundColor: '#fff',
+                                    borderRadius: 20,
+                                    paddingHorizontal: SW(6),
+                                    paddingVertical: SH(6),
+                                    borderWidth: 1,
+                                    borderColor: '#ccc',
+                                }}
+                            >
+                                <FontAwesome name="camera" size={18} color={Colors.darkBlue} />
+                            </TouchableOpacity>
+                        </View>
                     </View>
-                </View>
-            </ScrollView>
+                    <View style={formStyle.formStyle}>
+
+                        <Text style={formStyle.title}>Name</Text>
+                        <TextInput
+                            style={formStyle.inputBox}
+                            value={name}
+                            onChangeText={setName}
+                            placeholder='Name'
+                            placeholderTextColor={Colors.darkGray}
+                        />
+
+                        <Text style={formStyle.title}>Username</Text>
+                        <TextInput
+                            style={formStyle.inputBox}
+                            value={username}
+                            onChangeText={setUsername}
+                            placeholder='Username'
+                            placeholderTextColor={Colors.darkGray}
+                            keyboardType="email-address"
+                            autoCapitalize="none"
+                        />
+
+                        <Text style={formStyle.title}>Password</Text>
+                        <View style={styles.passwordContainer}>
+                            <TextInput
+                                style={[formStyle.inputBox, styles.passwordInput]}
+                                value={password}
+                                onChangeText={setPassword}
+                                placeholder='Password'
+                                placeholderTextColor={Colors.darkGray}
+                                secureTextEntry={!showPassword}
+                            />
+                            <TouchableOpacity
+                                style={styles.eyeIcon}
+                                onPress={() => setShowPassword(!showPassword)}
+                            >
+                                <Ionicons
+                                    name={showPassword ? 'eye-off' : 'eye'}
+                                    size={24}
+                                    color={Colors.darkGray}
+                                />
+                            </TouchableOpacity>
+                        </View>
+
+                        <Text style={formStyle.title}>Designation</Text>
+                        <TextInput
+                            style={formStyle.inputBox}
+                            value={designation}
+                            onChangeText={setDesignation}
+                            placeholder='Designation'
+                            placeholderTextColor={Colors.darkGray}
+                        />
+                        <View style={{ marginTop: SH(50) }}>
+                            <TouchableOpacity style={[styles.gradientButton, { backgroundColor: Colors.gradientBlue }]} onPress={() => navigation.navigate('App', {
+                                screen: 'ChangePassword'
+                            })}>
+                                <Text style={[styles.title, { color: Colors.light }]}>Change Password</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity style={styles.gradientButton} onPress={handleLogout}>
+                                <Text style={[styles.title]}>Log Out</Text>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+                </ScrollView>
+            </KeyboardAvoidingView>
         </SafeAreaView>
     );
 };

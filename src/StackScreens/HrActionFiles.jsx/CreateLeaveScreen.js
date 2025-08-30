@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { View, Text, TouchableOpacity, TextInput, ScrollView, StyleSheet, Modal, TouchableWithoutFeedback } from "react-native";
+import { View, Text, TouchableOpacity, TextInput, ScrollView, StyleSheet, Modal, TouchableWithoutFeedback, KeyboardAvoidingViewBase, Platform, KeyboardAvoidingView } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Icon from "react-native-vector-icons/Feather";
 import { Dropdown } from "react-native-element-dropdown";
@@ -75,148 +75,153 @@ const CreateLeaveScreen = ({ navigation }) => {
     return (
         < SafeAreaView style={containerStyle.container} edges={['top', 'bottom']}>
 
-            <AppHeader navigation={navigation} title="Create Leave" />
+            <KeyboardAvoidingView
+                behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+                style={{ flex: 1 }}
+                keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
+            >
+                <AppHeader navigation={navigation} title="Create Leave" />
 
-            <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
+                <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
 
-                <Text style={styles.label}>Leave Type</Text>
-                <Dropdown
-                    style={styles.dropdown}
-                    placeholderStyle={styles.placeholderStyle}
-                    selectedTextStyle={styles.selectedTextStyle}
-                    inputSearchStyle={styles.inputSearchStyle}
-                    iconStyle={styles.iconStyle}
-                    data={leaveOptions}
-                    search
-                    maxHeight={300}
-                    labelField="label"
-                    valueField="value"
-                    placeholder="Select leave type"
-                    searchPlaceholder="Search..."
-                    value={leaveType}
-                    onChange={(item) => setLeaveType(item.value)}
-                    renderItem={(item) => (
-                        <View style={{ padding: 12 }}>
-                            <Text style={{ color: '#333', fontSize: SF(14) }}>{item.label}</Text>
-                        </View>
-                    )}
-                    renderRightIcon={() => <Icon name="chevron-down" size={20} color="#555" />}
-                />
+                    <Text style={styles.label}>Leave Type</Text>
+                    <Dropdown
+                        style={styles.dropdown}
+                        placeholderStyle={styles.placeholderStyle}
+                        selectedTextStyle={styles.selectedTextStyle}
+                        inputSearchStyle={styles.inputSearchStyle}
+                        iconStyle={styles.iconStyle}
+                        data={leaveOptions}
+                        search
+                        maxHeight={300}
+                        labelField="label"
+                        valueField="value"
+                        placeholder="Select leave type"
+                        searchPlaceholder="Search..."
+                        value={leaveType}
+                        onChange={(item) => setLeaveType(item.value)}
+                        renderItem={(item) => (
+                            <View style={{ padding: 12 }}>
+                                <Text style={{ color: '#333', fontSize: SF(14) }}>{item.label}</Text>
+                            </View>
+                        )}
+                        renderRightIcon={() => <Icon name="chevron-down" size={20} color="#555" />}
+                    />
 
 
-                <View style={styles.dateRow}>
-                    <TouchableOpacity
-                        style={styles.datePicker}
-                        onPress={() => setShowFromCalendar(true)}
-                    >
-                        <Text style={styles.dateText}>
-                            {fromDate ? fromDate : "From date"}
-                        </Text>
-                        <Icon name="calendar" size={18} color="#555" />
-                    </TouchableOpacity>
-
-                    <Text style={{ marginHorizontal: 10, alignSelf: "center" }}>-</Text>
-
-                    <TouchableOpacity
-                        style={styles.datePicker}
-                        onPress={() => setShowToCalendar(true)}
-                    >
-                        <Text style={styles.dateText}>
-                            {toDate ? toDate : "To date"}
-                        </Text>
-                        <Icon name="calendar" size={18} color="#555" />
-                    </TouchableOpacity>
-                </View>
-
-                <Text style={styles.label}>Duration</Text>
-                <View style={styles.durationRow}>
-                    {["Full Day", "Half Day", "None"].map((item) => (
+                    <View style={styles.dateRow}>
                         <TouchableOpacity
-                            key={item}
-                            style={[
-                                styles.durationBtn,
-                                duration === item && styles.durationBtnActive,
-                            ]}
-                            onPress={() => setDuration(item)}
+                            style={styles.datePicker}
+                            onPress={() => setShowFromCalendar(true)}
                         >
-                            <Text
-                                style={[
-                                    styles.durationText,
-                                    duration === item && styles.durationTextActive,
-                                ]}
-                            >
-                                {item}
+                            <Text style={styles.dateText}>
+                                {fromDate ? fromDate : "From date"}
                             </Text>
+                            <Icon name="calendar" size={18} color="#555" />
                         </TouchableOpacity>
-                    ))}
-                </View>
 
-                <Text style={styles.label}>Reason for leave</Text>
-                <TextInput
-                    style={styles.textArea}
-                    placeholder="Enter reason"
-                    placeholderTextColor="#888"
-                    multiline
-                    value={reason}
-                    onChangeText={setReason}
-                />
+                        <Text style={{ marginHorizontal: 10, alignSelf: "center" }}>-</Text>
 
-                <View style={{ marginVertical: SH(50) }}>
-                    <GradientButton title={'SUBMIT'} onPress={() => handleSubmit()} />
-                </View>
-
-            </ScrollView>
-
-            <Modal
-                visible={showFromCalendar}
-                transparent
-                animationType="slide"
-                onRequestClose={() => setShowFromCalendar(false)}
-            >
-                <TouchableWithoutFeedback onPress={() => setShowFromCalendar(false)}>
-                    <View style={styles.modalContainer}>
-                        <TouchableWithoutFeedback>
-                            <View style={styles.calendarBox}>
-                                <Calendar
-                                    onDayPress={(day) => {
-                                        setFromDate(day.dateString);
-                                        setShowFromCalendar(false);
-                                    }}
-                                    markedDates={{
-                                        [fromDate]: { selected: true, selectedColor: "#2c3e50" },
-                                    }}
-                                />
-                            </View>
-                        </TouchableWithoutFeedback>
+                        <TouchableOpacity
+                            style={styles.datePicker}
+                            onPress={() => setShowToCalendar(true)}
+                        >
+                            <Text style={styles.dateText}>
+                                {toDate ? toDate : "To date"}
+                            </Text>
+                            <Icon name="calendar" size={18} color="#555" />
+                        </TouchableOpacity>
                     </View>
-                </TouchableWithoutFeedback>
-            </Modal>
 
-            <Modal
-                visible={showToCalendar}
-                transparent
-                animationType="slide"
-                onRequestClose={() => setShowToCalendar(false)}
-            >
-                <TouchableWithoutFeedback onPress={() => setShowToCalendar(false)}>
-                    <View style={styles.modalContainer}>
-                        <TouchableWithoutFeedback>
-                            <View style={styles.calendarBox}>
-                                <Calendar
-                                    onDayPress={(day) => {
-                                        setToDate(day.dateString);
-                                        setShowToCalendar(false);
-                                    }}
-                                    markedDates={{
-                                        [toDate]: { selected: true, selectedColor: "#2c3e50" },
-                                    }}
-                                />
-                            </View>
-                        </TouchableWithoutFeedback>
+                    <Text style={styles.label}>Duration</Text>
+                    <View style={styles.durationRow}>
+                        {["Full Day", "Half Day", "None"].map((item) => (
+                            <TouchableOpacity
+                                key={item}
+                                style={[
+                                    styles.durationBtn,
+                                    duration === item && styles.durationBtnActive,
+                                ]}
+                                onPress={() => setDuration(item)}
+                            >
+                                <Text
+                                    style={[
+                                        styles.durationText,
+                                        duration === item && styles.durationTextActive,
+                                    ]}
+                                >
+                                    {item}
+                                </Text>
+                            </TouchableOpacity>
+                        ))}
                     </View>
-                </TouchableWithoutFeedback>
-            </Modal>
 
+                    <Text style={styles.label}>Reason for leave</Text>
+                    <TextInput
+                        style={styles.textArea}
+                        placeholder="Enter reason"
+                        placeholderTextColor="#888"
+                        multiline
+                        value={reason}
+                        onChangeText={setReason}
+                    />
+
+                    <View style={{ marginVertical: SH(50) }}>
+                        <GradientButton title={'SUBMIT'} onPress={() => handleSubmit()} />
+                    </View>
+
+                </ScrollView>
+
+                <Modal
+                    visible={showFromCalendar}
+                    transparent
+                    animationType="slide"
+                    onRequestClose={() => setShowFromCalendar(false)}
+                >
+                    <TouchableWithoutFeedback onPress={() => setShowFromCalendar(false)}>
+                        <View style={styles.modalContainer}>
+                            <TouchableWithoutFeedback>
+                                <View style={styles.calendarBox}>
+                                    <Calendar
+                                        onDayPress={(day) => {
+                                            setFromDate(day.dateString);
+                                            setShowFromCalendar(false);
+                                        }}
+                                        markedDates={{
+                                            [fromDate]: { selected: true, selectedColor: "#2c3e50" },
+                                        }}
+                                    />
+                                </View>
+                            </TouchableWithoutFeedback>
+                        </View>
+                    </TouchableWithoutFeedback>
+                </Modal>
+
+                <Modal
+                    visible={showToCalendar}
+                    transparent
+                    animationType="slide"
+                    onRequestClose={() => setShowToCalendar(false)}
+                >
+                    <TouchableWithoutFeedback onPress={() => setShowToCalendar(false)}>
+                        <View style={styles.modalContainer}>
+                            <TouchableWithoutFeedback>
+                                <View style={styles.calendarBox}>
+                                    <Calendar
+                                        onDayPress={(day) => {
+                                            setToDate(day.dateString);
+                                            setShowToCalendar(false);
+                                        }}
+                                        markedDates={{
+                                            [toDate]: { selected: true, selectedColor: "#2c3e50" },
+                                        }}
+                                    />
+                                </View>
+                            </TouchableWithoutFeedback>
+                        </View>
+                    </TouchableWithoutFeedback>
+                </Modal>
+            </KeyboardAvoidingView>
         </SafeAreaView>
     );
 };

@@ -31,7 +31,7 @@ const AppHeader = ({ navigation, title, description }) => {
 
 const styles = StyleSheet.create({
     container: {
-        paddingTop: SH(20),
+        paddingTop: SH(10),
         paddingBottom: SH(10),
         backgroundColor: Colors.background
     },

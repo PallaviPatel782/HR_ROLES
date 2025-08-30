@@ -6,18 +6,33 @@ import FlashMessage from "react-native-flash-message";
 import store from './src/redux/store';
 import { Provider } from 'react-redux';
 import { View, StyleSheet, StatusBar } from 'react-native';
+import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
+
+const AppContent = () => {
+  const insets = useSafeAreaInsets();
+
+  return (
+    <View style={styles.container}>
+      <StatusBar barStyle="dark-content" backgroundColor={"#fff"} />
+      <RootNavigator />
+      <InternetCheck />
+      <FlashMessage 
+        position="bottom"
+        style={{ marginBottom: insets.bottom }}
+        floating={true}
+      />
+    </View>
+  );
+};
 
 const App = () => {
   return (
     <Provider store={store}>
-      <NavigationContainer>
-        <View style={styles.container}>
-          <StatusBar barStyle="dark-content" backgroundColor={"#fff"} />
-          <RootNavigator />
-          <InternetCheck />
-          <FlashMessage position="bottom" />
-        </View>
-      </NavigationContainer>
+      <SafeAreaProvider>
+        <NavigationContainer>
+          <AppContent />
+        </NavigationContainer>
+      </SafeAreaProvider>
     </Provider>
   );
 };

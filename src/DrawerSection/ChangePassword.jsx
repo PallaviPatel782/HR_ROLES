@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View, TextInput, TouchableOpacity } from 'react-native';
+import { StyleSheet, Text, View, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
 import React, { useState } from 'react';
 import AppHeader from '../Components/AppHeader';
 import { containerStyle } from '../Styles/ScreenContainer';
@@ -13,7 +13,9 @@ const ChangePassword = ({ navigation }) => {
     const [currentPassword, setCurrentPassword] = useState('');
     const [newPassword, setNewPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
-    const [secure, setSecure] = useState(true);
+    const [secureCurrent, setSecureCurrent] = useState(true);
+    const [secureNew, setSecureNew] = useState(true);
+    const [secureConfirm, setSecureConfirm] = useState(true);
 
     const toggleSecure = () => setSecure(!secure);
 
@@ -31,87 +33,100 @@ const ChangePassword = ({ navigation }) => {
 
     return (
         <SafeAreaView style={containerStyle.container} edges={['top', 'bottom']}>
-            <AppHeader navigation={navigation} title="Change Password" />
+            <KeyboardAvoidingView
+                behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+                style={{ flex: 1 }}
+                keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
+            >
+                <AppHeader navigation={navigation} title="Change Password" />
 
-            <View style={styles.bannerBox}>
-                <Ionicons name="lock-closed-outline" size={34} color={Colors.light} style={styles.lock} />
-                <Text style={styles.bannerTitle}>Keep your account secure</Text>
-                <Text style={styles.bannerText}>
-                    Use a strong and unique password to protect your account from unauthorized access.
-                </Text>
-            </View>
-            <View style={styles.content}>
-                <Text style={formStyle.title}>Current Password</Text>
-                <View style={{ position: 'relative' }}>
-                    <TextInput
-                        style={formStyle.inputBox}
-                        secureTextEntry={secure}
-                        placeholder="Enter current password"
-                        value={currentPassword}
-                        onChangeText={setCurrentPassword}
-                        placeholderTextColor={Colors.darkGray}
-                    />
-                    <TouchableOpacity
-                        onPress={toggleSecure}
-                        style={{
-                            position: 'absolute',
-                            right: 12,
-                            top: '50%',
-                            transform: [{ translateY: -10 }],
-                        }}
-                    >
-                        <Ionicons name={secure ? 'eye-off-outline' : 'eye-outline'} size={20} color="#555" />
-                    </TouchableOpacity>
-                </View>
-
-
-                <Text style={formStyle.title}>New Password</Text>
-
-                <View style={{ position: 'relative' }}>
-                    <TextInput
-                        style={formStyle.inputBox}
-                        secureTextEntry={secure}
-                        placeholder="Enter new password"
-                        value={newPassword}
-                        onChangeText={setNewPassword}
-                        placeholderTextColor={Colors.darkGray}
-                    />
-                    <TouchableOpacity
-                        onPress={toggleSecure}
-                        style={{
-                            position: 'absolute',
-                            right: 12,
-                            top: '50%',
-                            transform: [{ translateY: -10 }],
-                        }}
-                    >
-                        <Ionicons name={secure ? 'eye-off-outline' : 'eye-outline'} size={20} color="#555" />
-                    </TouchableOpacity>
-                </View>
+                <ScrollView
+                    contentContainerStyle={{ flexGrow: 1 }}
+                    keyboardShouldPersistTaps="handled"
+                    showsVerticalScrollIndicator={false}>
+                    <View style={styles.bannerBox}>
+                        <Ionicons name="lock-closed-outline" size={34} color={Colors.light} style={styles.lock} />
+                        <Text style={styles.bannerTitle}>Keep your account secure</Text>
+                        <Text style={styles.bannerText}>
+                            Use a strong and unique password to protect your account from unauthorized access.
+                        </Text>
+                    </View>
+                    <View style={styles.content}>
+                        <Text style={formStyle.title}>Current Password</Text>
+                        <View style={{ position: 'relative' }}>
+                            <TextInput
+                                style={formStyle.inputBox}
+                                secureTextEntry={secureCurrent}
+                                placeholder="Enter current password"
+                                value={currentPassword}
+                                onChangeText={setCurrentPassword}
+                                placeholderTextColor={Colors.darkGray}
+                            />
+                            <TouchableOpacity
+                                onPress={() => setSecureCurrent(!secureCurrent)}
+                                style={{
+                                    position: 'absolute',
+                                    right: 12,
+                                    top: '50%',
+                                    transform: [{ translateY: -10 }],
+                                }}
+                            >
+                                <Ionicons name={secureCurrent ? 'eye-off-outline' : 'eye-outline'} size={20} color="#555" />
+                            </TouchableOpacity>
+                        </View>
 
 
-                <Text style={formStyle.title}>Confirm New Password</Text>
-                <View style={{ position: "relative" }}>
-                    <TextInput
-                        style={formStyle.inputBox}
-                        secureTextEntry={secure}
-                        placeholder="Re-enter new password"
-                        value={confirmPassword}
-                        onChangeText={setConfirmPassword}
-                        placeholderTextColor={Colors.darkGray}
-                    />
-                    <TouchableOpacity onPress={toggleSecure} style={{
-                        position: 'absolute',
-                        right: 12,
-                        top: '50%',
-                        transform: [{ translateY: -10 }],
-                    }}>
-                        <Ionicons name={secure ? 'eye-off-outline' : 'eye-outline'} size={20} color="#555" />
-                    </TouchableOpacity>
-                </View>
+                        <Text style={formStyle.title}>New Password</Text>
 
-                <GradientButton title="Update Password" onPress={handleSubmit} style={{ marginTop: SH(40) }} />
-            </View>
+                        <View style={{ position: 'relative' }}>
+                            <TextInput
+                                style={formStyle.inputBox}
+                                secureTextEntry={secureNew}
+                                placeholder="Enter new password"
+                                value={newPassword}
+                                onChangeText={setNewPassword}
+                                placeholderTextColor={Colors.darkGray}
+                            />
+                            <TouchableOpacity
+                                onPress={() => setSecureNew(!secureNew)}
+                                style={{
+                                    position: 'absolute',
+                                    right: 12,
+                                    top: '50%',
+                                    transform: [{ translateY: -10 }],
+                                }}
+                            >
+                                <Ionicons name={secureNew ? 'eye-off-outline' : 'eye-outline'} size={20} color="#555" />
+                            </TouchableOpacity>
+                        </View>
+
+
+                        <Text style={formStyle.title}>Confirm New Password</Text>
+                        <View style={{ position: "relative" }}>
+                            <TextInput
+                                style={formStyle.inputBox}
+                                secureTextEntry={secureConfirm}
+                                placeholder="Re-enter new password"
+                                value={confirmPassword}
+                                onChangeText={setConfirmPassword}
+                                placeholderTextColor={Colors.darkGray}
+                            />
+                            <TouchableOpacity
+                                onPress={() => setSecureConfirm(!secureConfirm)}
+                                style={{
+                                    position: 'absolute',
+                                    right: 12,
+                                    top: '50%',
+                                    transform: [{ translateY: -10 }],
+                                }}>
+                                <Ionicons name={secureConfirm ? 'eye-off-outline' : 'eye-outline'} size={20} color="#555" />
+                            </TouchableOpacity>
+                        </View>
+
+                        <GradientButton title="Update Password" onPress={handleSubmit} style={{ marginTop: SH(40) }} />
+                    </View>
+                </ScrollView>
+            </KeyboardAvoidingView>
         </SafeAreaView>
     );
 };
@@ -122,15 +137,15 @@ const styles = StyleSheet.create({
     content: {
         paddingVertical: SH(16),
     },
-    lock:{
-paddingVertical: SH(20),
-        paddingHorizontal:SW(20),
-        backgroundColor:Colors.gradientBlue,
-        borderRadius:50
+    lock: {
+        paddingVertical: SH(20),
+        paddingHorizontal: SW(20),
+        backgroundColor: Colors.gradientBlue,
+        borderRadius: 50
     },
     bannerBox: {
         paddingVertical: SH(20),
-        paddingHorizontal:SW(20),
+        paddingHorizontal: SW(20),
         borderRadius: SW(10),
         marginHorizontal: SW(16),
         alignItems: 'center',

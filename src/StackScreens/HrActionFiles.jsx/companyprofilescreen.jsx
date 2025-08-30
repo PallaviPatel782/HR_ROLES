@@ -103,8 +103,8 @@ const Companyprofilescreen = ({ navigation }) => {
             resizeMode="contain"
           />
           <Text style={[styles.appNameTxt1, { fontSize: SF(12) }]}>Redefining Recruitment</Text>
-          <Text style={styles.appNameTxt2}>Webseeder Technology</Text>
-          <Text style={styles.companyWebsiteTxt}>www.webseedertechnology.com</Text>
+          <Text style={styles.appNameTxt2}>Trinexa Global</Text>
+          <Text style={styles.companyWebsiteTxt}>www.trinexaglobal.com</Text>
         </View>
         <ToggleSection
           icon="MaterialCommunityIcons"
@@ -116,9 +116,9 @@ const Companyprofilescreen = ({ navigation }) => {
           onToggle={() => toggleSection('overview')}
         >
           {[
-            { label: "Registered Company Name", value: 'Webseeder Technology' },
-            { label: "Official Email", value: 'contact@webseedertech.com' },
-            { label: "Website", value: 'www.webseedertechnology.com' },
+            { label: "Registered Company Name", value: 'Trinexa Global' },
+            { label: "Official Email", value: 'info@trinexaglobal.com' },
+            { label: "Website", value: 'www.trinexaglobal.com' },
             { label: "Industry Type", value: 'Recruitment Services' },
           ].map((item, index) => (
             <View key={index} style={styles.sectionItem}>

@@ -1,6 +1,5 @@
 import React, { useState, useRef } from 'react';
 import { StyleSheet, Text, View, TextInput, Image, ScrollView, KeyboardAvoidingView, Platform, TouchableOpacity } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
 import { containerStyle } from '../../Styles/ScreenContainer';
 import GradientButton from '../../Components/GradientButton';
 import { SH, SF, SW } from '../../utils/Dimensions';
@@ -84,12 +83,14 @@ const OtpVerification = ({ navigation }) => {
             style={{ marginTop: SH(30) }}
           />
 
-          <Text style={styles.bottomtext}>
-            Didn't receive code?{' '}
+          <View style={{ flexDirection: 'row', justifyContent: 'center' }}>
+            <Text style={styles.bottomtext}>Didn't receive code? </Text>
             <TouchableOpacity onPress={() => resent()}>
-              <Text style={{ color: Colors.gradientBlue }}>Resend</Text>
+              <Text style={[styles.bottomtext, { color: Colors.gradientBlue }]}>
+                Resend
+              </Text>
             </TouchableOpacity>
-          </Text>
+          </View>
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
