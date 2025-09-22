@@ -2,12 +2,16 @@ import { configureStore } from '@reduxjs/toolkit';
 import authReducer from './slices/authSlice';
 import loginReducer from './slices/LoginSlice';
 import AttendanceReducer from './slices/attendanceSlice';
+import salaryReducer from './slices/salarySlice';
+import profileReducer from './slices/profileSlice';
 
 const store = configureStore({
   reducer: {
     auth: authReducer,
     auth_credencials: loginReducer,
-    attendance: AttendanceReducer
+    attendance: AttendanceReducer,
+    salary: salaryReducer,
+     profile: profileReducer,
   },
 });
 

@@ -1,191 +1,138 @@
-import { StyleSheet, Text, TextInput, View, TouchableOpacity, Image, ScrollView, Alert, KeyboardAvoidingView, Platform } from 'react-native';
-import React, { useState } from 'react';
+import { StyleSheet, Text, TextInput, View, TouchableOpacity, Image, KeyboardAvoidingView, ScrollView } from 'react-native';
+import React, { useState, useEffect } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { containerStyle } from '../../Styles/ScreenContainer';
 import AppHeader from '../../Components/AppHeader';
 import { formStyle } from '../../Styles/formStyle';
 import Colors from '../../utils/Colors';
-import Ionicons from 'react-native-vector-icons/Ionicons'
 import { SH, SW, SF } from '../../utils/Dimensions';
-import { launchImageLibrary } from 'react-native-image-picker';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchUserProfile, updateUserProfile, setUserInfo } from '../../redux/slices/profileSlice';
 import { showMessage } from 'react-native-flash-message';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { launchImageLibrary } from "react-native-image-picker";
+import { IMG_URL } from '../../utils/BASE_URL';
 
 const Profile = ({ navigation }) => {
-    const [name, setName] = useState('Rubby Doe');
-    const [username, setUsername] = useState('rubbydoe@email.com');
-    const [password, setPassword] = useState('123456');
-    const [designation, setDesignation] = useState('Native Developer');
-    const [showPassword, setShowPassword] = useState(false);
+    const dispatch = useDispatch();
+    const { userInfo, profile, loading } = useSelector((state) => state.profile);
+
+    const [firstName, setFirstName] = useState('');
+    const [lastName, setLastName] = useState('');
+    const [email, setEmail] = useState('');
+    const [phone, setPrimaryPhone] = useState('');
     const [profileUri, setProfileUri] = useState(null);
 
-    const handleImagePick = () => {
-        const options = {
-            mediaType: 'photo',
-            maxWidth: 500,
-            maxHeight: 500,
-            quality: 0.8,
+    useEffect(() => {
+        const loadUserInfo = async () => {
+            const stored = await AsyncStorage.getItem("userInfo");
+            if (stored) {
+                const parsed = JSON.parse(stored);
+                dispatch(setUserInfo(parsed));
+                dispatch(fetchUserProfile(parsed._id));
+            }
         };
+        loadUserInfo();
+    }, []);
 
-        launchImageLibrary(options, (response) => {
-            if (response.didCancel) {
-                console.log('User cancelled image picker');
-            } else if (response.errorCode) {
-                console.error('ImagePicker Error: ', response.errorMessage);
-            } else if (response.assets && response.assets.length > 0) {
+    useEffect(() => {
+        if (profile) {
+            setFirstName(profile.firstName || '');
+            setLastName(profile.lastName || '');
+            setEmail(profile.email || '');
+            setPrimaryPhone(profile.primaryPhone || '');
+            const displayPhoto = profileUri || (profile.photograph ? `${IMG_URL}${profile.photograph}` : null);
+            setProfileUri(displayPhoto);
+        }
+    }, [profile]);
+
+    const handleImagePick = () => {
+        launchImageLibrary({ mediaType: "photo", maxWidth: 600, maxHeight: 600, quality: 0.8 }, (response) => {
+            if (response.assets && response.assets.length > 0) {
                 setProfileUri(response.assets[0].uri);
             }
         });
     };
 
-
-    const handleLogout = async () => {
-        console.log("logout button is pressed");
-
-        try {
-            await AsyncStorage.removeItem('authToken');
-            await AsyncStorage.removeItem('userInfo');
-            console.log("authToken & userInfo cleared");
-
+    const handleSave = () => {
+        if (!firstName || !lastName || !email || !phone) {
             showMessage({
-                message: 'Logout successful',
-                description: 'You have been logged out.',
-                type: 'success',
-                icon: 'success',
-                duration: 3000,
-            });
-
-            navigation.reset({
-                index: 0,
-                routes: [{ name: "AuthStack" }],
-            });
-        } catch (error) {
-            console.error('Logout error:', error);
-
-            showMessage({
-                message: 'Logout failed',
-                description: 'Something went wrong while logging out.',
+                message: 'Validation Error',
+                description: 'Please fill all fields',
                 type: 'danger',
                 icon: 'danger',
-                duration: 3000,
             });
+            return;
         }
+
+        const payload = { firstName, lastName, email, phone, photograph: profileUri };
+        dispatch(updateUserProfile({ userId: userInfo?.id, payload }))
+            .unwrap()
+            .then(() => {
+                showMessage({ message: 'Profile updated', type: 'success', icon: 'success' });
+                setTimeout(() => {
+                    navigation.replace("App");
+                }, 2000);
+            })
+            .catch((err) =>
+                showMessage({
+                    message: 'Update failed',
+                    description: err?.message || 'Something went wrong',
+                    type: 'danger',
+                    icon: 'danger',
+                })
+            );
     };
 
     return (
         <SafeAreaView style={containerStyle.container} edges={['top', 'bottom']}>
-            <KeyboardAvoidingView
-                behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-                style={{ flex: 1 }}
-                keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
-            >
-                <AppHeader navigation={navigation} title="Profile" />
-
-                <ScrollView
-                    contentContainerStyle={{ flexGrow: 1 }}
-                    keyboardShouldPersistTaps="handled"
-                    showsVerticalScrollIndicator={false}>
+            <AppHeader navigation={navigation} title="My Profile" />
+            <ScrollView showsVerticalScrollIndicator={false}>
+                <KeyboardAvoidingView>
                     <View style={{ alignSelf: 'center', marginVertical: SH(10) }}>
                         <View style={{ position: 'relative' }}>
                             <Image
-                                source={
-                                    profileUri
-                                        ? { uri: profileUri }
-                                        : require('../../assests/Images/dummyProfile.jpg')
-                                }
-                                style={{
-                                    width: SW(100),
-                                    height: SW(100),
-                                    borderRadius: SW(100),
-                                    borderWidth: 2,
-                                    borderColor: Colors.darkBlue,
-                                }}
+                                source={profileUri ? { uri: profileUri } : require('../../assests/Images/dummyProfile.jpg')}
+                                style={{ width: SW(120), height: SW(120), borderRadius: SW(60), borderWidth: 2, borderColor: Colors.darkBlue }}
                             />
-
                             <TouchableOpacity
                                 onPress={handleImagePick}
-                                style={{
-                                    position: 'absolute',
-                                    bottom: SH(1),
-                                    right: SW(10),
-                                    backgroundColor: '#fff',
-                                    borderRadius: 20,
-                                    paddingHorizontal: SW(6),
-                                    paddingVertical: SH(6),
-                                    borderWidth: 1,
-                                    borderColor: '#ccc',
-                                }}
+                                style={{ position: 'absolute', bottom: SH(5), right: SW(5), backgroundColor: '#fff', borderRadius: 20, padding: 6, borderWidth: 1, borderColor: '#ccc' }}
                             >
                                 <FontAwesome name="camera" size={18} color={Colors.darkBlue} />
                             </TouchableOpacity>
                         </View>
                     </View>
+
                     <View style={formStyle.formStyle}>
-
-                        <Text style={formStyle.title}>Name</Text>
+                        <Text style={formStyle.title}>First Name</Text>
                         <TextInput
                             style={formStyle.inputBox}
-                            value={name}
-                            onChangeText={setName}
-                            placeholder='Name'
+                            value={firstName}
+                            onChangeText={setFirstName}
+                            placeholder="First Name"
                             placeholderTextColor={Colors.darkGray}
                         />
-
-                        <Text style={formStyle.title}>Username</Text>
-                        <TextInput
-                            style={formStyle.inputBox}
-                            value={username}
-                            onChangeText={setUsername}
-                            placeholder='Username'
-                            placeholderTextColor={Colors.darkGray}
-                            keyboardType="email-address"
-                            autoCapitalize="none"
-                        />
-
-                        <Text style={formStyle.title}>Password</Text>
-                        <View style={styles.passwordContainer}>
-                            <TextInput
-                                style={[formStyle.inputBox, styles.passwordInput]}
-                                value={password}
-                                onChangeText={setPassword}
-                                placeholder='Password'
-                                placeholderTextColor={Colors.darkGray}
-                                secureTextEntry={!showPassword}
-                            />
-                            <TouchableOpacity
-                                style={styles.eyeIcon}
-                                onPress={() => setShowPassword(!showPassword)}
-                            >
-                                <Ionicons
-                                    name={showPassword ? 'eye-off' : 'eye'}
-                                    size={24}
-                                    color={Colors.darkGray}
-                                />
-                            </TouchableOpacity>
-                        </View>
-
-                        <Text style={formStyle.title}>Designation</Text>
-                        <TextInput
-                            style={formStyle.inputBox}
-                            value={designation}
-                            onChangeText={setDesignation}
-                            placeholder='Designation'
+                        <Text style={formStyle.title}>Last Name</Text>
+                        <TextInput style={formStyle.inputBox}
+                            value={lastName} onChangeText={setLastName}
+                            placeholder="Last Name"
                             placeholderTextColor={Colors.darkGray}
                         />
-                        <View style={{ marginTop: SH(50) }}>
-                            <TouchableOpacity style={[styles.gradientButton, { backgroundColor: Colors.gradientBlue }]} onPress={() => navigation.navigate('App', {
-                                screen: 'ChangePassword'
-                            })}>
-                                <Text style={[styles.title, { color: Colors.light }]}>Change Password</Text>
-                            </TouchableOpacity>
-                            <TouchableOpacity style={styles.gradientButton} onPress={handleLogout}>
-                                <Text style={[styles.title]}>Log Out</Text>
+                        <Text style={formStyle.title}>Email</Text>
+                        <TextInput style={formStyle.inputBox} value={email} onChangeText={setEmail} placeholder="Email" keyboardType="email-address" autoCapitalize="none" placeholderTextColor={Colors.darkGray} />
+                        <Text style={formStyle.title}>Phone Number</Text>
+                        <TextInput style={formStyle.inputBox} value={phone} onChangeText={setPrimaryPhone} placeholder="Phone Number" keyboardType="phone-pad" placeholderTextColor={Colors.darkGray} />
+
+                        <View style={{ marginTop: SH(30) }}>
+                            <TouchableOpacity style={[styles.saveBtn, { backgroundColor: Colors.gradientBlue }]} onPress={handleSave} disabled={loading}>
+                                <Text style={styles.saveText}>{loading ? 'Saving...' : 'Save Changes'}</Text>
                             </TouchableOpacity>
                         </View>
                     </View>
-                </ScrollView>
-            </KeyboardAvoidingView>
+                </KeyboardAvoidingView>
+            </ScrollView>
         </SafeAreaView>
     );
 };
@@ -193,33 +140,6 @@ const Profile = ({ navigation }) => {
 export default Profile;
 
 const styles = StyleSheet.create({
-    passwordContainer: {
-        position: 'relative',
-        width: '100%',
-    },
-    passwordInput: {
-        paddingRight: SW(50),
-        color: Colors.dark
-    },
-    eyeIcon: {
-        position: 'absolute',
-        right: 15,
-        top: 12,
-    },
-    gradientButton: {
-        height: SH(40),
-        paddingHorizontal: SW(20),
-        borderRadius: 10,
-        justifyContent: 'center',
-        alignItems: 'center',
-        backgroundColor: Colors.darkBlue,
-        marginVertical: SH(5),
-        // borderWidth: 0.5,
-        // borderColor: Colors.darkBlue
-    },
-    title: {
-        color: Colors.light,
-        fontFamily: 'Inter-Regular',
-        fontSize: SF(16),
-    },
+    saveBtn: { paddingVertical: SH(12), borderRadius: 10, alignItems: 'center' },
+    saveText: { color: Colors.light, fontSize: SF(15), fontFamily: 'Inter-Bold' },
 });
