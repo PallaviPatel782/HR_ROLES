@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { View, Text, TouchableOpacity, TextInput, ScrollView, StyleSheet, Modal, TouchableWithoutFeedback, KeyboardAvoidingViewBase, Platform, KeyboardAvoidingView } from "react-native";
+import React, { useState, useEffect } from "react";
+import { View, Text, TouchableOpacity, TextInput, ScrollView, StyleSheet, Modal, TouchableWithoutFeedback, Platform, KeyboardAvoidingView } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Icon from "react-native-vector-icons/Feather";
 import { Dropdown } from "react-native-element-dropdown";
@@ -10,13 +10,27 @@ import Colors from "../../utils/Colors";
 import { containerStyle } from "../../Styles/ScreenContainer";
 import GradientButton from "../../Components/GradientButton";
 import { showMessage } from "react-native-flash-message";
+import api from "../../utils/api";
+import { LEAVE_REQUEST } from "../../utils/BASE_URL";
 
 const leaveOptions = [
-    { label: "Sick Leave", value: "sick" },
-    { label: "Casual Leave", value: "casual" },
-    { label: "Earned Leave", value: "earned" },
-    { label: "Unpaid Leave", value: "unpaid" },
+    { label: "Sick Leave", value: "sick", isPaid: true },
+    { label: "Casual Leave", value: "casual", isPaid: true },
+    { label: "Earned Leave", value: "earned", isPaid: true },
+    { label: "Unpaid Leave", value: "unpaid", isPaid: false },
 ];
+
+const getDatesInRange = (start, end) => {
+    const dateArray = [];
+    let currentDate = new Date(start);
+    const lastDate = new Date(end);
+
+    while (currentDate <= lastDate) {
+        dateArray.push(new Date(currentDate).toISOString().split("T")[0]);
+        currentDate.setDate(currentDate.getDate() + 1);
+    }
+    return dateArray;
+};
 
 const CreateLeaveScreen = ({ navigation }) => {
     const [leaveType, setLeaveType] = useState(null);
@@ -24,57 +38,80 @@ const CreateLeaveScreen = ({ navigation }) => {
     const [toDate, setToDate] = useState(null);
     const [showFromCalendar, setShowFromCalendar] = useState(false);
     const [showToCalendar, setShowToCalendar] = useState(false);
-    const [duration, setDuration] = useState("Full Day");
     const [reason, setReason] = useState("");
+    const [leaveDurations, setLeaveDurations] = useState([]);
+
+    useEffect(() => {
+        if (fromDate && toDate) {
+            const dates = getDatesInRange(fromDate, toDate);
+            setLeaveDurations(dates.map(d => ({ date: d, duration: "full" })));
+        }
+    }, [fromDate, toDate]);
 
     const validateLeaveForm = () => {
         if (!leaveType) {
             showMessage({ message: 'Please select leave type', type: 'warning' });
             return false;
         }
-
         if (!fromDate) {
             showMessage({ message: 'Please select from date', type: 'warning' });
             return false;
         }
-
         if (!toDate) {
             showMessage({ message: 'Please select to date', type: 'warning' });
             return false;
         }
-
-        // Optional: Check if toDate is after fromDate
         if (new Date(toDate) < new Date(fromDate)) {
             showMessage({ message: 'To date cannot be before From date', type: 'warning' });
             return false;
         }
-
-        if (!duration) {
-            showMessage({ message: 'Please select leave duration', type: 'warning' });
-            return false;
-        }
-
         if (!reason.trim()) {
             showMessage({ message: 'Please enter reason for leave', type: 'warning' });
             return false;
         }
-
         return true;
     };
 
-
-    const handleSubmit = () => {
+    const handleSubmit = async () => {
         if (validateLeaveForm()) {
-            showMessage({ message: 'Leave request submitted!', type: 'success' });
-            setTimeout(() => {
-                navigation.goBack();
-            }, 1000);
+            const selectedLeave = leaveOptions.find(item => item.value === leaveType);
+
+            const payload = {
+                leaveName: selectedLeave?.label || leaveType,
+                isPaid: selectedLeave?.isPaid || false,
+                startDate: fromDate,
+                endDate: toDate,
+                description: reason,
+                durations: leaveDurations,
+            };
+
+            console.log("Leave Request Payload ===>", JSON.stringify(payload, null, 2));
+
+            try {
+                const response = await api.post(LEAVE_REQUEST, payload);
+                console.log("Leave Request Response ===>", response.data);
+                showMessage({
+                    message: response?.data?.message || "Leave request submitted successfully!",
+                    type: "success",
+                    duration: 3000,
+                });
+                setTimeout(() => {
+                    navigation.goBack();
+                }, 3000);
+            } catch (error) {
+                console.log("Leave request error:", error?.response?.data || error);
+
+                showMessage({
+                    message: error?.response?.data?.message || "Failed to submit leave request",
+                    type: "danger",
+                    duration: 3000,
+                });
+            }
         }
     };
 
     return (
-        < SafeAreaView style={containerStyle.container} edges={['top', 'bottom']}>
-
+        <SafeAreaView style={containerStyle.container} edges={['top', 'bottom']}>
             <KeyboardAvoidingView
                 behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
                 style={{ flex: 1 }}
@@ -83,7 +120,6 @@ const CreateLeaveScreen = ({ navigation }) => {
                 <AppHeader navigation={navigation} title="Create Leave" />
 
                 <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
-
                     <Text style={styles.label}>Leave Type</Text>
                     <Dropdown
                         style={styles.dropdown}
@@ -107,7 +143,6 @@ const CreateLeaveScreen = ({ navigation }) => {
                         )}
                         renderRightIcon={() => <Icon name="chevron-down" size={20} color="#555" />}
                     />
-
 
                     <View style={styles.dateRow}>
                         <TouchableOpacity
@@ -133,28 +168,46 @@ const CreateLeaveScreen = ({ navigation }) => {
                         </TouchableOpacity>
                     </View>
 
-                    <Text style={styles.label}>Duration</Text>
-                    <View style={styles.durationRow}>
-                        {["Full Day", "Half Day", "None"].map((item) => (
-                            <TouchableOpacity
-                                key={item}
-                                style={[
-                                    styles.durationBtn,
-                                    duration === item && styles.durationBtnActive,
-                                ]}
-                                onPress={() => setDuration(item)}
-                            >
-                                <Text
-                                    style={[
-                                        styles.durationText,
-                                        duration === item && styles.durationTextActive,
-                                    ]}
-                                >
-                                    {item}
-                                </Text>
-                            </TouchableOpacity>
-                        ))}
-                    </View>
+                    {leaveDurations.length > 0 && (
+                        <>
+                            <Text style={styles.label}>Select duration per day</Text>
+                            {leaveDurations.map((item, index) => (
+                                <View key={index} style={styles.durationRow}>
+                                    <Text style={{ flex: 1, fontSize: SF(14), color: "#333" }}>
+                                        {item.date}
+                                    </Text>
+
+                                    {["Full Day", "Half Day"].map(opt => {
+                                        const isActive = item.duration === (opt === "Full Day" ? "full" : "half");
+                                        return (
+                                            <TouchableOpacity
+                                                key={opt}
+                                                style={[
+                                                    styles.durationBtn,
+                                                    isActive && styles.durationBtnActive,
+                                                ]}
+                                                onPress={() => {
+                                                    const updated = [...leaveDurations];
+                                                    updated[index].duration =
+                                                        opt === "Full Day" ? "full" : "half";
+                                                    setLeaveDurations(updated);
+                                                }}
+                                            >
+                                                <Text
+                                                    style={[
+                                                        styles.durationText,
+                                                        { color: isActive ? "#fff" : "#000" }
+                                                    ]}
+                                                >
+                                                    {opt}
+                                                </Text>
+                                            </TouchableOpacity>
+                                        );
+                                    })}
+                                </View>
+                            ))}
+                        </>
+                    )}
 
                     <Text style={styles.label}>Reason for leave</Text>
                     <TextInput
@@ -169,7 +222,6 @@ const CreateLeaveScreen = ({ navigation }) => {
                     <View style={{ marginVertical: SH(50) }}>
                         <GradientButton title={'SUBMIT'} onPress={() => handleSubmit()} />
                     </View>
-
                 </ScrollView>
 
                 <Modal
@@ -183,13 +235,18 @@ const CreateLeaveScreen = ({ navigation }) => {
                             <TouchableWithoutFeedback>
                                 <View style={styles.calendarBox}>
                                     <Calendar
+                                        current={new Date().toISOString().split("T")[0]}
                                         onDayPress={(day) => {
                                             setFromDate(day.dateString);
                                             setShowFromCalendar(false);
                                         }}
                                         markedDates={{
-                                            [fromDate]: { selected: true, selectedColor: "#2c3e50" },
+                                            [fromDate || new Date().toISOString().split("T")[0]]: {
+                                                selected: true,
+                                                selectedColor: "#2c3e50",
+                                            },
                                         }}
+                                        minDate={new Date().toISOString().split("T")[0]}
                                     />
                                 </View>
                             </TouchableWithoutFeedback>
@@ -208,13 +265,18 @@ const CreateLeaveScreen = ({ navigation }) => {
                             <TouchableWithoutFeedback>
                                 <View style={styles.calendarBox}>
                                     <Calendar
+                                        current={new Date().toISOString().split("T")[0]}
                                         onDayPress={(day) => {
                                             setToDate(day.dateString);
                                             setShowToCalendar(false);
                                         }}
                                         markedDates={{
-                                            [toDate]: { selected: true, selectedColor: "#2c3e50" },
+                                            [toDate || new Date().toISOString().split("T")[0]]: {
+                                                selected: true,
+                                                selectedColor: "#2c3e50",
+                                            },
                                         }}
+                                        minDate={fromDate || new Date().toISOString().split("T")[0]}
                                     />
                                 </View>
                             </TouchableWithoutFeedback>
@@ -229,23 +291,6 @@ const CreateLeaveScreen = ({ navigation }) => {
 export default CreateLeaveScreen;
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: "#fff",
-        padding: SW(16)
-    },
-
-    header: {
-        flexDirection: "row",
-        alignItems: "center",
-        marginBottom: SH(20)
-    },
-    headerTitle: {
-        fontSize: SF(18),
-        fontFamily: "Inter-Bold",
-        marginLeft: SW(10)
-    },
-
     label: {
         fontSize: SF(14),
         fontFamily: "Inter-Medium",
@@ -253,7 +298,6 @@ const styles = StyleSheet.create({
         marginTop: SH(14),
         color: Colors.dark
     },
-
     dropdown: {
         borderWidth: 1,
         borderColor: "#ccc",
@@ -266,7 +310,6 @@ const styles = StyleSheet.create({
     selectedTextStyle: { fontSize: SF(14), color: "#333" },
     iconStyle: { width: SW(20), height: SH(20) },
     inputSearchStyle: { height: SH(40), fontSize: SF(14) },
-
     dateRow: {
         flexDirection: "row",
         marginTop: SH(10),
@@ -284,20 +327,19 @@ const styles = StyleSheet.create({
         paddingVertical: SH(10)
     },
     dateText: { fontSize: SF(14), color: "#333" },
-
     durationRow: {
         flexDirection: "row",
+        alignItems: "center",
         marginTop: SH(10)
     },
     durationBtn: {
-        flex: 1,
         borderWidth: 1,
         borderColor: "#ccc",
         paddingHorizontal: SW(12),
         paddingVertical: SH(7),
         borderRadius: SW(8),
         alignItems: "center",
-        marginRight: SW(10),
+        marginLeft: SW(10),
     },
     durationBtnActive: {
         backgroundColor: Colors.gradientBlue,
@@ -305,7 +347,6 @@ const styles = StyleSheet.create({
     },
     durationText: { fontSize: SF(14), color: "#333" },
     durationTextActive: { color: "#fff" },
-
     textArea: {
         borderWidth: 1,
         borderColor: "#ccc",
@@ -316,7 +357,6 @@ const styles = StyleSheet.create({
         marginTop: SH(8),
         color: Colors.dark
     },
-
     modalContainer: {
         flex: 1,
         justifyContent: "center",

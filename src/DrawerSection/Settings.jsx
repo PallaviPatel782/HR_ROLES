@@ -96,7 +96,7 @@ const Settings = ({ navigation }) => {
         <Text style={styles.sectionTitle}>Support</Text>
         <SettingItem
           icon="help-circle-outline"
-          title="Help Center"
+          title="FAQ"
           onPress={() => navigation.navigate('HelpCenterScreen')}
         />
         <SettingItem

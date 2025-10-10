@@ -27,19 +27,38 @@ const LoginScreen = () => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
     if (!userName.trim() && !password.trim()) {
-      Alert.alert('Validation Error', 'Email and Password are required');
+      showMessage({
+        message: "Email and Password are required",
+        type: "danger",
+        icon: "auto",
+      });
       return false;
     }
+
     if (!userName.trim()) {
-      Alert.alert('Validation Error', 'Email is required');
+      showMessage({
+        message: "Email is required",
+        type: "danger",
+        icon: "auto",
+      });
       return false;
     }
+
     if (!emailRegex.test(userName)) {
-      Alert.alert('Validation Error', 'Enter a valid email address');
+      showMessage({
+        message: "Enter a valid email address",
+        type: "danger",
+        icon: "auto",
+      });
       return false;
     }
+
     if (!password.trim()) {
-      Alert.alert('Validation Error', 'Password is required');
+      showMessage({
+        message: "Password is required",
+        type: "danger",
+        icon: "auto",
+      });
       return false;
     }
 
