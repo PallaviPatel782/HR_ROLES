@@ -1,113 +1,79 @@
-import React, { useState } from 'react';
-import { Text, View, TouchableOpacity, ScrollView } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { Text, View, TouchableOpacity, ScrollView, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AppHeader from '../../Components/AppHeader';
 import Colors from '../../utils/Colors';
 import styles from '../../Styles/LeaveHistoryStyle';
-import RightIcon from 'react-native-vector-icons/AntDesign';
-import { containerStyle } from '../../Styles/ScreenContainer';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import FilterModal from '../../Components/FilterModal';
 import moment from 'moment';
 import { SH } from '../../utils/Dimensions';
-
-const allLeaves = [
-  {
-    type: 'Half Day Application',
-    date: 'Wed, 16 Apr 2025',
-    status: 'Pending',
-    color: Colors.darkOrange,
-    bg: Colors.orange,
-    category: 'Casual',
-  },
-  {
-    type: 'Full Day Application',
-    date: 'Mon, 16 May 2025',
-    status: 'Approved',
-    color: '#3BA55D',
-    bg: '#D1F1DD',
-    category: 'Sick',
-  },
-  {
-    type: '3 Days Application',
-    date: 'Mon, 22 Nov 2021 - Fri, 25 Nov 2021',
-    status: 'Declined',
-    color: '#E33E3E',
-    bg: '#FCE9E9',
-    category: 'Earned',
-  },
-  {
-    type: 'Annual Leave',
-    date: 'Tue, 01 Jan 2022 - Fri, 04 Jan 2022',
-    status: 'Approved',
-    color: '#3BA55D',
-    bg: '#D1F1DD',
-    category: 'Earned',
-  },
-  {
-    type: 'Medical Leave',
-    date: 'Thu, 15 Jul 2021',
-    status: 'Approved',
-    color: '#3BA55D',
-    bg: '#D1F1DD',
-    category: 'Sick',
-  },
-];
-
+import { GET_LEAVE_DATA } from '../../utils/BASE_URL';
+import api from '../../utils/api';
+import { containerStyle } from '../../Styles/ScreenContainer';
 
 const getleavescreen = ({ navigation }) => {
   const [selectedStatus, setSelectedStatus] = useState('All');
-
   const [filterModalVisible, setFilterModalVisible] = useState(false);
-  const filterOptions = ['All', 'Casual', 'Sick', 'Earned', 'Maternity'];
-
+  const [leaveData, setLeaveData] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [filterOptions, setFilterOptions] = useState(['All']);
   const [localFilters, setLocalFilters] = useState({
-    status: { All: true, Casual: true, Sick: true, Earned: true, Maternity: true },
+    status: {},
     dateRange: { from: null, to: null },
   });
+  const fetchLeaveData = async () => {
+    try {
+      setLoading(true);
+      const response = await api.get(GET_LEAVE_DATA);
+      if (response?.data?.success) {
+        const data = response.data.data || [];
+        setLeaveData(data);
+        const leaveNames = Array.from(new Set(data.map(l => l.leaveName)));
+        setFilterOptions(['All', ...leaveNames]);
+        const statusObj = Object.fromEntries(['All', ...leaveNames].map(f => [f, true]));
+        setLocalFilters({ status: statusObj, dateRange: { from: null, to: null } });
+      }
+    } catch (error) {
+      console.log("Error fetching leaves:", error?.response?.data || error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  const filteredLeaves = allLeaves.filter((item) => {
-    const statusMatch =
-      selectedStatus === 'All' || item.status === selectedStatus;
+  useEffect(() => {
+    fetchLeaveData();
+  }, []);
 
-    const categoryMatch =
-      localFilters.status[item.category] || localFilters.status['All'];
+  const filteredLeaves = leaveData.filter((item) => {
+    const statusMap = {
+      approved: 'Approved',
+      pending: 'Pending',
+      rejected: 'Declined',
+    };
+    const mappedStatus = statusMap[item.status?.toLowerCase()] || 'Pending';
+
+    const statusMatch = selectedStatus === 'All' || mappedStatus === selectedStatus;
+    const categoryMatch = localFilters.status[item.leaveName] || localFilters.status['All'];
 
     let dateMatch = true;
     const from = localFilters.dateRange.from;
     const to = localFilters.dateRange.to;
 
     if (from && to) {
-      let itemFromDate, itemToDate;
-
-      if (item.date.includes(' - ')) {
-        const [start, end] = item.date.split(' - ');
-        itemFromDate = moment(start.trim(), 'ddd, DD MMM YYYY').startOf('day');
-        itemToDate = moment(end.trim(), 'ddd, DD MMM YYYY').endOf('day');
-      } else {
-        itemFromDate = moment(item.date.trim(), 'ddd, DD MMM YYYY').startOf('day');
-        itemToDate = itemFromDate.clone().endOf('day');
-      }
+      const itemFromDate = moment(item.startDate).startOf('day');
+      const itemToDate = moment(item.endDate).endOf('day');
 
       const fromDate = moment(from).startOf('day');
       const toDate = moment(to).endOf('day');
 
-      // Check overlap of date range
-      console.log("dateMatch", dateMatch);
       dateMatch = itemFromDate.isSameOrBefore(toDate) && itemToDate.isSameOrAfter(fromDate);
     }
 
     return statusMatch && categoryMatch && dateMatch;
   });
 
-
   const onApplyFilters = (appliedFilters) => {
-    // console.log('Applied Filters:', appliedFilters);
-    // console.log('From raw:', appliedFilters.dateRange.from);
-    // console.log('To raw:', appliedFilters.dateRange.to);
-    // console.log('Is valid from date:', moment(appliedFilters.dateRange.from).isValid());
-    // console.log('Is valid to date:', moment(appliedFilters.dateRange.to).isValid());
-
     setLocalFilters({
       status: appliedFilters.status,
       dateRange: {
@@ -125,8 +91,8 @@ const getleavescreen = ({ navigation }) => {
     <SafeAreaView style={containerStyle.container} edges={['top', 'bottom']}>
       <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
         <AppHeader navigation={navigation} title="Leaves" />
-        <View style={{ alignSelf: "flex-end", flexDirection: "row", alignItems: "center", marginBottom: SH(10) }}>
-          <TouchableOpacity onPress={() => setFilterModalVisible(true)} style={{ marginLeft: 10, paddingHorizontal: 5 }}>
+        <View style={{ flexDirection: "row", alignItems: "center", marginBottom: SH(10) }}>
+          <TouchableOpacity onPress={() => setFilterModalVisible(true)} style={{ marginLeft: 10 }}>
             <MaterialIcons name="filter-list" size={26} color={Colors.gradientBlue} />
           </TouchableOpacity>
           <TouchableOpacity
@@ -137,34 +103,34 @@ const getleavescreen = ({ navigation }) => {
           </TouchableOpacity>
         </View>
       </View>
-      <View>
-        <View style={styles.tabContainer}>
-          {['All', 'Approved', 'Pending', 'Declined'].map((status) => (
-            <TouchableOpacity
-              key={status}
-              style={[
-                styles.tabButton,
-                selectedStatus === status ? styles.activeTab : styles.inactiveTab,
-                status === 'All' ? styles.leftRadius : status === 'Declined' ? styles.rightRadius : null,
-              ]}
-              onPress={() => setSelectedStatus(status)}
-            >
-              <Text style={selectedStatus === status ? styles.activeTabText : styles.inactiveTabText}>
-                {status}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </View>
+
+      <View style={styles.tabContainer}>
+        {['All', 'Approved', 'Pending', 'Declined'].map((status) => (
+          <TouchableOpacity
+            key={status}
+            style={[
+              styles.tabButton,
+              selectedStatus === status ? styles.activeTab : styles.inactiveTab,
+              status === 'All' ? styles.leftRadius : status === 'Declined' ? styles.rightRadius : null,
+            ]}
+            onPress={() => setSelectedStatus(status)}
+          >
+            <Text style={selectedStatus === status ? styles.activeTabText : styles.inactiveTabText}>
+              {status}
+            </Text>
+          </TouchableOpacity>
+        ))}
       </View>
       <ScrollView style={styles.dataContainer} showsVerticalScrollIndicator={false}>
-        {filteredLeaves.length > 0 ? (
-          filteredLeaves.map((leave, index) => (
-            <LeaveCard key={index} {...leave} />
-          ))
+        {loading ? (
+          <ActivityIndicator size="large" color={Colors.gradientBlue} style={{ marginTop: 20 }} />
+        ) : filteredLeaves.length > 0 ? (
+          filteredLeaves.map((leave) => <LeaveCard key={leave._id} leave={leave} />)
         ) : (
           <Text style={styles.simpleText}>No Leaves Found</Text>
         )}
       </ScrollView>
+
       <FilterModal
         visible={filterModalVisible}
         onClose={() => setFilterModalVisible(false)}
@@ -176,20 +142,38 @@ const getleavescreen = ({ navigation }) => {
   );
 };
 
-const LeaveCard = ({ type, date, status, color, bg, category }) => (
-  <View style={styles.card}>
-    <View style={styles.cardTop}>
-      <Text style={styles.cardTitle}>{type}</Text>
-      <Text style={[styles.cardStatus, { color, backgroundColor: bg }]}>{status}</Text>
+const LeaveCard = ({ leave }) => {
+  const statusMap = {
+    approved: { text: "Approved", color: '#3BA55D', bg: '#D1F1DD' },
+    pending: { text: "Pending", color: Colors.darkOrange, bg: Colors.orange },
+    rejected: { text: "Declined", color: '#E33E3E', bg: '#FCE9E9' },
+  };
+
+  const statusInfo = statusMap[leave.status?.toLowerCase()] || statusMap['pending'];
+  const leaveDates = leave.leaveDates || [];
+
+  return (
+    <View style={styles.card}>
+      <View style={styles.cardTop}>
+        <Text style={styles.cardTitle}>{leave.leaveName}</Text>
+        <Text style={[styles.cardStatus, { color: statusInfo.color, backgroundColor: statusInfo.bg }]}>
+          {statusInfo.text}
+        </Text>
+      </View>
+
+      {leaveDates.map((day) => (
+        <Text key={day._id} style={styles.cardDate}>
+          {moment(day.date).format("ddd, DD MMM YYYY")} - {day.duration === 'full' ? 'Full Day' : 'Half Day'}
+        </Text>
+      ))}
+
+      <View style={styles.cardBottom}>
+        <Text style={styles.cardCategory}>
+          {leave.isPaid ? "Paid Leave" : "Unpaid Leave"}
+        </Text>
+      </View>
     </View>
-    <Text style={styles.cardDate}>{date}</Text>
-    <View style={styles.cardBottom}>
-      <Text style={styles.cardCategory}>{category}</Text>
-      {/* <TouchableOpacity style={styles.rightBtn}>
-        <RightIcon name="right" size={16} color={Colors.light} />
-      </TouchableOpacity> */}
-    </View>
-  </View>
-);
+  );
+};
 
 export default getleavescreen;

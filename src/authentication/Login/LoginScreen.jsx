@@ -65,60 +65,71 @@ const LoginScreen = () => {
     return true;
   };
 
-  const handleLogin = async () => {
-    if (!validateForm()) return;
+ const handleLogin = async () => {
+  if (!validateForm()) return;
 
-    const payload = {
-      email: userName.trim(),
-      password: password.trim(),
-    };
+  const payload = {
+    email: userName.trim(),
+    password: password.trim(),
+  };
 
-    console.log("Login Payload:", payload);
+  console.log("Login Payload:", payload);
 
-    setLoading(true);
-    try {
-      const response = await axios.post(LOGIN_API, payload, {
-        headers: { 'Content-Type': 'application/json' }
-      });
+  setLoading(true);
+  try {
+    const response = await axios.post(LOGIN_API, payload, {
+      headers: { 'Content-Type': 'application/json' }
+    });
 
-      console.log("API Response:", response?.data);
+    console.log("API Response:", response?.data);
 
-      if (response?.data?.user && response?.data?.token) {
-        await AsyncStorage.setItem('authToken', response.data.token);
-        await AsyncStorage.setItem('userInfo', JSON.stringify(response.data.user));
+    const user = response?.data?.user;
+    const token = response?.data?.token;
+    const companyId = user?.companyDetails?.companyId || '';
+    const companyName = user?.companyDetails?.companyName || '';
 
-        showMessage({
-          message: "Login Successful",
-          type: "success",
-          icon: "success",
-          duration: 3000,
-        });
+    if (user && token) {
+      await AsyncStorage.setItem('authToken', token);
+      await AsyncStorage.setItem('userInfo', JSON.stringify(user));
+      if (companyId) await AsyncStorage.setItem('companyId', companyId);
+      if (companyName) await AsyncStorage.setItem('companyName', companyName);
 
-        navigation.reset({
-          index: 0,
-          routes: [{ name: "AppStack" }],
-        });
-      } else {
-        showMessage({
-          message: response?.data?.message || 'Invalid credentials',
-          type: 'danger',
-          icon: 'danger',
-          duration: 3000,
-        });
-      }
-    } catch (error) {
-      console.error("Login Error:", error?.response?.data || error.message);
+      console.log("Stored companyId:", companyId);
+      console.log("Stored companyName:", companyName);
 
       showMessage({
-        message: error.response?.data?.message || 'Something went wrong',
+        message: "Login Successful",
+        type: "success",
+        icon: "success",
+        duration: 3000,
+      });
+
+      navigation.reset({
+        index: 0,
+        routes: [{ name: "AppStack" }],
+      });
+    } else {
+      showMessage({
+        message: response?.data?.message || 'Invalid credentials',
         type: 'danger',
         icon: 'danger',
         duration: 3000,
       });
-    } finally {
-      setLoading(false);
     }
-  };
+  } catch (error) {
+    console.error("Login Error:", error?.response?.data || error.message);
+
+    showMessage({
+      message: error.response?.data?.message || 'Something went wrong',
+      type: 'danger',
+      icon: 'danger',
+      duration: 3000,
+    });
+  } finally {
+    setLoading(false);
+  }
+};
+
 
 
 

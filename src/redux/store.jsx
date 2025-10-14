@@ -4,6 +4,7 @@ import loginReducer from './slices/LoginSlice';
 import AttendanceReducer from './slices/attendanceSlice';
 import salaryReducer from './slices/salarySlice';
 import profileReducer from './slices/profileSlice';
+import CompanyReducer from './slices/companyProfileSlice';
 
 const store = configureStore({
   reducer: {
@@ -12,6 +13,7 @@ const store = configureStore({
     attendance: AttendanceReducer,
     salary: salaryReducer,
      profile: profileReducer,
+     companyProfile:CompanyReducer,
   },
 });
 

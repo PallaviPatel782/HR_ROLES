@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { StyleSheet, Text, TextInput, View, TouchableOpacity, Image, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { containerStyle } from '../../Styles/ScreenContainer';
@@ -9,9 +9,56 @@ import { formStyle } from '../../Styles/formStyle';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AppHeader from '../../Components/AppHeader';
+import { FORGOT_PASSWORD } from '../../utils/BASE_URL';
+import api from '../../utils/api';
+import { showMessage } from 'react-native-flash-message';
 
 const ForgotPassword = () => {
     const navigation = useNavigation();
+    const [email, setEmail] = useState('');
+    const [loading, setLoading] = useState(false);
+
+    const handleForgotPassword = async () => {
+        if (!email) {
+            showMessage({
+                message: "Please enter your email address",
+                type: "danger",
+            });
+            return;
+        }
+
+        try {
+            setLoading(true);
+            const response = await api.post(FORGOT_PASSWORD, { email });
+
+            console.log("Forgot Password Response:", response.data);
+
+            if (response?.status === 200) {
+                showMessage({
+                    message: "Success",
+                    description: response.data.message || "OTP sent successfully",
+                    type: "success",
+                });
+                navigation.navigate("OtpVerification", { email });
+            } else {
+                showMessage({
+                    message: "Error",
+                    description: response.data.message || "Something went wrong",
+                    type: "danger",
+                });
+            }
+        } catch (error) {
+            console.log("Forgot Password Error:", error.response?.data || error);
+            showMessage({
+                message: "Error",
+                description: error.response?.data?.message || "Failed to send OTP",
+                type: "danger",
+            });
+        } finally {
+            setLoading(false);
+        }
+    };
+
 
     return (
         <SafeAreaView style={containerStyle.container} edges={['top', 'bottom']}>
@@ -40,7 +87,7 @@ const ForgotPassword = () => {
                         We'll send a one-time password (OTP) to your email so you can reset your password.
                     </Text>
 
-                    <View style={[styles.inputCard]}>
+                    <View style={styles.inputCard}>
                         <Text style={formStyle.title}>Email Address</Text>
                         <View style={styles.inputContainer}>
                             <Ionicons name="mail-outline" size={20} color={Colors.darkGray} />
@@ -49,13 +96,16 @@ const ForgotPassword = () => {
                                 placeholderTextColor={Colors.placeholderColor}
                                 style={styles.inputBox}
                                 keyboardType="email-address"
+                                value={email}
+                                onChangeText={setEmail}
                             />
                         </View>
                     </View>
 
                     <GradientButton
-                        title="Continue"
-                        onPress={() => navigation.navigate('OtpVerification')}
+                        title={loading ? 'Please wait...' : 'Continue'}
+                        onPress={handleForgotPassword}
+                        disabled={loading}
                         style={{ marginTop: SH(50) }}
                     />
                 </ScrollView>
@@ -63,6 +113,8 @@ const ForgotPassword = () => {
         </SafeAreaView>
     );
 };
+
+
 export default ForgotPassword;
 
 const styles = StyleSheet.create({
@@ -76,20 +128,20 @@ const styles = StyleSheet.create({
     },
     heading: {
         fontFamily: 'Inter-Bold',
-        fontSize: SF(19),
+        fontSize: SF(22),
         textAlign: 'center',
         color: Colors.gradientBlue,
     },
     welcome: {
         fontFamily: 'Inter-Bold',
-        fontSize: SF(17),
+        fontSize: SF(22),
         textAlign: 'center',
         marginTop: SH(20),
         color: Colors.dark,
     },
     description: {
         fontFamily: 'Inter-Regular',
-        fontSize: SF(13),
+        fontSize: SF(15),
         textAlign: 'center',
         marginTop: SH(10),
         color: Colors.darkGray,
@@ -97,7 +149,7 @@ const styles = StyleSheet.create({
         marginBottom: SH(30),
     },
     inputCard: {
-        paddingBottom: SH(20),
+        paddingVertical: SH(20),
     },
     inputContainer: {
         flexDirection: 'row',
@@ -106,7 +158,7 @@ const styles = StyleSheet.create({
         borderWidth: 1,
         borderRadius: 10,
         paddingHorizontal: SW(10),
-        height: SH(45),
+        height: SH(50),
         backgroundColor: '#F9F9F9',
         marginTop: SH(10),
     },

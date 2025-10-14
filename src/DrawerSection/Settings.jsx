@@ -10,43 +10,45 @@ import GradientButton from '../Components/GradientButton';
 import geoLogo from '../assests/Images/logo.png';
 import { showMessage } from 'react-native-flash-message';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import DeviceInfo from 'react-native-device-info';
 
 const Settings = ({ navigation }) => {
   const [isNotificationOn, setIsNotificationOn] = useState(true);
+  const appVersion = DeviceInfo.getVersion();
+  console.log("appVersion",appVersion);
+  const handleLogout = async () => {
+    console.log("logout button is pressed");
 
-   const handleLogout = async () => {
-     console.log("logout button is pressed");
- 
-     try {
-       await AsyncStorage.removeItem('authToken');
-       await AsyncStorage.removeItem('userInfo');
-       console.log("authToken & userInfo cleared");
- 
-       showMessage({
-         message: 'Logout successful',
-         description: 'You have been logged out.',
-         type: 'success',
-         icon: 'success',
-         duration: 3000,
-       });
- 
-       navigation.reset({
-         index: 0,
-         routes: [{ name: "AuthStack" }],
-       });
- 
-     } catch (error) {
-       console.error('Logout error:', error);
- 
-       showMessage({
-         message: 'Logout failed',
-         description: 'Something went wrong while logging out.',
-         type: 'danger',
-         icon: 'danger',
-         duration: 3000,
-       });
-     }
-   };
+    try {
+      await AsyncStorage.removeItem('authToken');
+      await AsyncStorage.removeItem('userInfo');
+      console.log("authToken & userInfo cleared");
+
+      showMessage({
+        message: 'Logout successful',
+        description: 'You have been logged out.',
+        type: 'success',
+        icon: 'success',
+        duration: 3000,
+      });
+
+      navigation.reset({
+        index: 0,
+        routes: [{ name: "AuthStack" }],
+      });
+
+    } catch (error) {
+      console.error('Logout error:', error);
+
+      showMessage({
+        message: 'Logout failed',
+        description: 'Something went wrong while logging out.',
+        type: 'danger',
+        icon: 'danger',
+        duration: 3000,
+      });
+    }
+  };
 
   const companyLink = {
     label: 'Geo Holidays',
@@ -113,7 +115,7 @@ const Settings = ({ navigation }) => {
         <SettingItem
           icon="information-circle-outline"
           title="App Version"
-          rightComponent={<Text style={styles.versionText}>v1.0.0</Text>}
+          rightComponent={<Text style={styles.versionText}>v{appVersion}</Text>}
         />
         {/* <TouchableOpacity
           onPress={() => Linking.openURL(companyLink.url)}

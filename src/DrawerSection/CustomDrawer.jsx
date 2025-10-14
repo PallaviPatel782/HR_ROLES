@@ -1,5 +1,5 @@
 import { Text, View, Image, TouchableOpacity, ScrollView, Alert } from 'react-native';
-import React,{useState,useEffect} from 'react';
+import React, { useState, useEffect } from 'react';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { styles } from '../Styles/CustomerStyle';
 import Colors from '../utils/Colors';
@@ -9,29 +9,43 @@ import { containerStyle } from '../Styles/ScreenContainer';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { showMessage } from 'react-native-flash-message';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
+import { IMG_URL } from '../utils/BASE_URL';
+import { fetchUserProfile, setUserInfo } from '../redux/slices/profileSlice';
+import { useDispatch, useSelector } from 'react-redux';
 
 const CustomDrawer = ({ navigation }) => {
-  const [email,setEmail]= useState(null);
-  const [firstName, setFirstName] = useState(null);
-  const [lastName, setLastName] = useState(null);
+  const dispatch = useDispatch();
+  const { profile } = useSelector(state => state.profile);
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
+  const [userEmail, setUserEmail] = useState('');
+  const [userPhoto, setUserPhoto] = useState(null);
 
-    useEffect(() => {
-      const fetchUserInfo = async () => {
-        try {
-          const userInfoString = await AsyncStorage.getItem('userInfo');
-          if (userInfoString) {
-            const userInfo = JSON.parse(userInfoString);
-            console.log("userInfo",userInfo);
-            setFirstName(userInfo.firstName);
-            setLastName(userInfo.lastName);
-            setEmail(userInfo.email)
-          }
-        } catch (error) {
-          console.error('Error fetching user info:', error);
-        }
-      };
-      fetchUserInfo();
-    }, []);
+  useEffect(() => {
+    const loadProfile = async () => {
+      const stored = await AsyncStorage.getItem('userInfo');
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        dispatch(setUserInfo(parsed));
+        dispatch(fetchUserProfile(parsed._id));
+      }
+    };
+    loadProfile();
+  }, []);
+
+  useEffect(() => {
+    if (profile) {
+      setFirstName(profile.firstName || '');
+      setLastName(profile.lastName || '');
+      setUserEmail(profile.email || '');
+      const displayPhoto = profile.photograph
+        ? profile.photograph.startsWith('http')
+          ? profile.photograph
+          : `${IMG_URL}/${profile.photograph}`
+        : null;
+      setUserPhoto(displayPhoto);
+    }
+  }, [profile]);
 
   const topMenuItems = [
     { label: 'Dashboard', icon: 'grid-outline', IconComponent: Ionicons, screen: 'Hr' },
@@ -105,15 +119,28 @@ const CustomDrawer = ({ navigation }) => {
     <SafeAreaView style={[containerStyle.container, { paddingTop: SH(15) }]} edges={['top', 'bottom']}>
       <View style={styles.profileSection}>
         <TouchableOpacity onPress={() => navigation.navigate('Profile')}>
-          {/* <Image
-            source={require('../assests/Images/dummyProfile.jpg')}
-            style={styles.avatar}
-          /> */}
-          <FontAwesome name={'user-circle'} color={Colors.dark} size={30}/>
+          {userPhoto ? (
+            <Image source={{ uri: userPhoto }} style={styles.avatar} />
+          ) : (
+            <View style={[styles.avatar, { justifyContent: 'center', alignItems: 'center', backgroundColor: '#ddd' }]}>
+              <FontAwesome name="user" size={40} color={Colors.darkGray} />
+            </View>
+          )}
         </TouchableOpacity>
+
         <TouchableOpacity style={styles.userInfo} onPress={() => navigation.navigate('Profile')}>
-          <Text style={styles.name}>{firstName} {lastName}</Text>
-          <Text style={styles.email}>{email}</Text>
+          <Text style={styles.name}>
+            {`${firstName} ${lastName}`.trim().length > 15
+              ? `${firstName} ${lastName}`.trim().substring(0, 15) + "..."
+              : `${firstName} ${lastName}`.trim() || "User"}
+          </Text>
+
+          <Text style={styles.email}>
+            {userEmail?.length > 20
+              ? userEmail.substring(0, 20) + "..."
+              : userEmail}
+          </Text>
+
         </TouchableOpacity>
       </View>
 
