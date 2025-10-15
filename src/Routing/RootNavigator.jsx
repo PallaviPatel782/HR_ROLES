@@ -27,9 +27,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { NavigationContainer } from "@react-navigation/native";
 import Loading from "../Splash/Loading";
 import { useSelector } from "react-redux";
-import policies from "../StackScreens/Policies/PolicyDetail1";
 import PolicyDetail1 from "../StackScreens/Policies/PolicyDetail1";
-import PolicyDetail2 from "../StackScreens/Policies/PolicyDetail2";
 import HelpCenterScreen from "../DrawerSection/HelpCenterScreen";
 import TermsAndConditionsScreen from "../DrawerSection/TermsAndConditionsScreen";
 import AnnouncementScreen from "../StackScreens/HrActionFiles.jsx/announcementScreen";
@@ -99,8 +97,7 @@ const AppStack = () => {
       <Stack.Screen name="ContactSupport" component={ContactSupport} />
       <Stack.Screen name="Settings" component={Settings} />
       <Stack.Screen name="ChangePassword" component={ChangePassword} />
-      <Stack.Screen name="PolicyDetail1" component={PolicyDetail1} />
-      <Stack.Screen name="PolicyDetail2" component={PolicyDetail2} />
+      <Stack.Screen name="PolicyDetail" component={PolicyDetail1} />
       <Stack.Screen name="HelpCenterScreen" component={HelpCenterScreen} />
       <Stack.Screen name="TermsAndConditionsScreen" component={TermsAndConditionsScreen} />
     </Stack.Navigator>

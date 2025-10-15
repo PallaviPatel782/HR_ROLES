@@ -110,7 +110,15 @@ const userprofilescreen = ({ navigation }) => {
     try {
       const [res] = await pick({ type: [types.allFiles] });
       if (!res) return;
-
+      if (/\s/.test(res.name)) {
+      showMessage({
+        message: "Invalid File Name!",
+        description: "Please rename the file to remove spaces before uploading.",
+        type: "warning",
+        duration: 4000,
+      });
+      return;
+    }
       const maxSize = 2 * 1024 * 1024; // 2 MB
       if (res.size && res.size > maxSize) {
         showMessage({
@@ -150,6 +158,16 @@ const userprofilescreen = ({ navigation }) => {
       const [res] = await pick({ type: [types.allFiles] });
       if (!res) return;
 
+       if (/\s/.test(res.name)) {
+      showMessage({
+        message: "Invalid File Name!",
+        description: "Please rename the file to remove spaces before uploading.",
+        type: "warning",
+        duration: 4000,
+      });
+      return;
+    }
+    
       const maxSize = 2 * 1024 * 1024;
       if (res.size > maxSize) {
         showMessage({ message: "File too large!", description: "Max 2 MB", type: "warning" });

@@ -21,4 +21,4 @@ export const OTP = `${BASE_URL}/v1/user/verifyOTP`;
 export const CHANGE_PASSWORD = `${BASE_URL}/v1/user/changePassword`;
 export const RESET_PASSWORD = `${BASE_URL}/v1/user/resetPassword`;
 export const COMPANY_PROFILE = `${BASE_URL}/v1/company/getCompanyById`;
-export const COMPANY_POLICIES = `${BASE_URL}/v1/company/getPolicyByCompany`;
+export const COMPANY_POLICIES = `${BASE_URL}/v1/company/getAllPolicies`;

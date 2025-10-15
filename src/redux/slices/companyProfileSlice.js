@@ -18,7 +18,7 @@ export const fetchPoliciesByCompany = createAsyncThunk(
   "companyProfile/fetchPoliciesByCompany",
   async (companyId, { rejectWithValue }) => {
     try {
-      const res = await api.get(`${COMPANY_POLICIES}/${companyId}`);
+      const res = await api.get(`${COMPANY_POLICIES}`);
       return res.data?.data || [];
     } catch (err) {
       return rejectWithValue(err.response?.data || err.message);

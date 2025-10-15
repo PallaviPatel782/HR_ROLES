@@ -1,53 +1,111 @@
-import { StyleSheet, Text, View, ScrollView } from 'react-native'
-import React from 'react'
-import AppHeader from '../../Components/AppHeader';
+import React from 'react';
+import { StyleSheet, Text, View, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { containerStyle } from '../../Styles/ScreenContainer';
+import AppHeader from '../../Components/AppHeader';
 import Colors from '../../utils/Colors';
 import { SH, SF, SW } from '../../utils/Dimensions';
+import RenderHTML from 'react-native-render-html';
+import { useWindowDimensions } from 'react-native';
 
+const PolicyDetail1 = ({ route, navigation }) => {
+  const { policy } = route.params;
+  const { width } = useWindowDimensions();
 
-const PolicyDetail1 = ({ navigation }) => {
   return (
-    <SafeAreaView style={containerStyle.container}>
-      <AppHeader navigation={navigation} title="Policy 1.1: About the contract" />
-      <ScrollView contentContainerStyle={{ paddingHorizontal: SW(5), paddingVertical: SH(20) }} showsVerticalScrollIndicator={false}>
-        <View>
-          <Text style={styles.itemLabel}>Objective</Text>
-          <Text style={styles.itemValue}>
-            This policy outlines the terms and conditions under which an employee enters into an agreement with the company.
-          </Text>
+    <SafeAreaView style={[containerStyle.container, { backgroundColor: Colors.background }]}>
+      <AppHeader navigation={navigation} title={policy?.section || "Policy Detail"} />
 
-          <Text style={[styles.itemLabel, { marginTop: SH(16) }]}>Contract Period</Text>
-          <Text style={styles.itemValue}>
-            All employees are required to sign a 12-month service contract effective from the date of joining.
-          </Text>
+      <ScrollView
+        contentContainerStyle={{ paddingHorizontal: SW(15), paddingVertical: SH(20) }}
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={styles.card}>
+          <Text style={styles.title}>{policy?.title || "Untitled Policy"}</Text>
 
-          <Text style={[styles.itemLabel, { marginTop: SH(16) }]}>Termination</Text>
-          <Text style={styles.itemValue}>
-            Either party may terminate the agreement with 30 days written notice or salary in lieu of notice.
-          </Text>
+          <View style={styles.divider} />
+
+          <View style={styles.infoBox}>
+            <Text style={styles.label}>Section</Text>
+            <Text style={styles.value}>{policy?.section || "N/A"}</Text>
+          </View>
+
+          <View style={styles.infoBox}>
+            <Text style={styles.label}>Created On</Text>
+            <Text style={styles.value}>
+              {policy?.createdAt ? new Date(policy.createdAt).toLocaleDateString() : "N/A"}
+            </Text>
+          </View>
+
+          <Text style={[styles.label, { marginTop: SH(18) }]}>Description</Text>
+          {policy?.description ? (
+            <View style={styles.descriptionBox}>
+              <RenderHTML
+                contentWidth={width}
+                source={{ html: policy.description }}
+                baseStyle={styles.htmlText}
+              />
+            </View>
+          ) : (
+            <Text style={styles.value}>No description provided.</Text>
+          )}
         </View>
       </ScrollView>
     </SafeAreaView>
-  )
-}
+  );
+};
 
-export default PolicyDetail1
+export default PolicyDetail1;
 
 const styles = StyleSheet.create({
-
-  itemLabel: {
+  card: {
+    backgroundColor: Colors.light,
+    borderRadius: 16,
+    padding: SW(18),
+    shadowColor: Colors.dark,
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 3,
+  },
+  title: {
+    fontSize: SF(18),
+    fontFamily: 'Inter-Bold',
+    color: Colors.darkBlue,
+    textAlign: 'center',
+    marginBottom: SH(10),
+  },
+  divider: {
+    height: 1,
+    backgroundColor: Colors.gray,
+    opacity: 0.4,
+    marginVertical: SH(8),
+  },
+  infoBox: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingVertical: SH(6),
+  },
+  label: {
+    fontSize: SF(14),
+    color: Colors.darkGray,
+    fontFamily: 'Inter-SemiBold',
+  },
+  value: {
+    fontSize: SF(14),
+    color: Colors.dark,
+    fontFamily: 'Inter-Regular',
+    textAlign: 'right',
+    flexShrink: 1,
+  },
+  descriptionBox: {
+    borderRadius: 10,
+    padding: SW(10),
+    paddingLeft:0
+  },
+  htmlText: {
     fontSize: SF(13),
     color: Colors.dark,
-    fontFamily: 'Inter-Bold',
-    marginBottom: 6,
-  },
-
-  itemValue: {
-    fontSize: SF(13),
-    color: '#1c1c1c',
     fontFamily: 'Inter-Regular',
     lineHeight: 22,
-  }
-})
+  },
+});
