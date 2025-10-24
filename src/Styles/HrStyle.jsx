@@ -25,7 +25,7 @@ const styles = StyleSheet.create({
         fontFamily: 'Inter-Bold',
     },
     punchCard: {
-        backgroundColor: '#2D32EC',
+        backgroundColor: '#5a60f4ff',
         borderRadius: 20,
         paddingVertical: SH(20),
         paddingHorizontal: SW(20),

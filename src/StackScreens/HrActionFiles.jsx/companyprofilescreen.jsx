@@ -228,7 +228,7 @@ const CompanyProfileScreen = ({ navigation }) => {
           )}
         </ToggleSection>
 
-        <ToggleSection
+        {/* <ToggleSection
           icon="Ionicons"
           iconName="megaphone-outline"
           iconSize={22}
@@ -249,7 +249,7 @@ const CompanyProfileScreen = ({ navigation }) => {
               </View>
             ))}
           </View>
-        </ToggleSection>
+        </ToggleSection> */}
 
         {/* 🔹 Policies */}
         <ToggleSection
@@ -412,7 +412,7 @@ const styles = StyleSheet.create({
     borderColor: '#ddd',
     backgroundColor: Colors.lightBlue,
     borderRadius: SW(50),
-    marginVertical: SH(15),
+    marginVertical: SH(6),
   },
   logoutText: {
     fontSize: SF(14),

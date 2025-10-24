@@ -52,6 +52,13 @@ const actions = [
     color: '#e9dfed',
     textColor: '#bc79db',
   },
+  {
+    icon: <MaterialCommunityIcons name="bullhorn-variant" size={30} color="#311B92" />, 
+    title: 'Announcement',
+    screen: 'AnnouncementScreen',
+    color: '#e1eefa',
+    textColor: '#3271a8'
+  }
 ];
 
 const Hr = ({ navigation }) => {
@@ -172,7 +179,7 @@ const Hr = ({ navigation }) => {
                     alignItems: 'center',
                     justifyContent: 'center',
                     marginTop: SH(10),
-                    backgroundColor: 'green',
+                    backgroundColor: '#70b185ff',
                     paddingVertical: SH(12),
                     paddingHorizontal: SW(20),
                     borderRadius: 8,
@@ -192,7 +199,7 @@ const Hr = ({ navigation }) => {
                     alignItems: 'center',
                     justifyContent: 'center',
                     marginTop: SH(10),
-                    backgroundColor: punchOutTime ? 'gray' : 'red',
+                    backgroundColor: punchOutTime ? 'gray' : '#de717a',
                     paddingVertical: SH(12),
                     paddingHorizontal: SW(20),
                     borderRadius: 8,
