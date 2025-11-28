@@ -3,12 +3,11 @@ import React, { useState, useEffect } from 'react';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { styles } from '../Styles/CustomerStyle';
 import Colors from '../utils/Colors';
-import { SH } from '../utils/Dimensions';
+import { SH, SW } from '../utils/Dimensions';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { containerStyle } from '../Styles/ScreenContainer';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { showMessage } from 'react-native-flash-message';
-import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import { IMG_URL } from '../utils/BASE_URL';
 import { fetchUserProfile, setUserInfo } from '../redux/slices/profileSlice';
 import { useDispatch, useSelector } from 'react-redux';
@@ -26,26 +25,28 @@ const CustomDrawer = ({ navigation }) => {
       const stored = await AsyncStorage.getItem('userInfo');
       if (stored) {
         const parsed = JSON.parse(stored);
-        dispatch(setUserInfo(parsed));
-        dispatch(fetchUserProfile(parsed._id));
+        const response = await dispatch(fetchUserProfile(parsed.id)).unwrap();
+        dispatch(setUserInfo(response));
+        updateLocalState(response);
       }
     };
+
     loadProfile();
   }, []);
+  const updateLocalState = (profile) => {
+    setFirstName(profile.firstName || '');
+    setLastName(profile.lastName || '');
+    setUserEmail(profile.email || '');
 
-  useEffect(() => {
-    if (profile) {
-      setFirstName(profile.firstName || '');
-      setLastName(profile.lastName || '');
-      setUserEmail(profile.email || '');
-      const displayPhoto = profile.photograph
-        ? profile.photograph.startsWith('http')
-          ? profile.photograph
-          : `${IMG_URL}/${profile.photograph}`
-        : null;
-      setUserPhoto(displayPhoto);
-    }
-  }, [profile]);
+    const displayPhoto = profile.photograph
+      ? profile.photograph.startsWith('http')
+        ? profile.photograph
+        : `${IMG_URL}/${profile.photograph}`
+      : null;
+
+    setUserPhoto(displayPhoto);
+  };
+
 
   const topMenuItems = [
     { label: 'Dashboard', icon: 'grid-outline', IconComponent: Ionicons, screen: 'Hr' },
@@ -122,26 +123,29 @@ const CustomDrawer = ({ navigation }) => {
           {userPhoto ? (
             <Image source={{ uri: userPhoto }} style={styles.avatar} />
           ) : (
-            <View style={[styles.avatar, { justifyContent: 'center', alignItems: 'center', backgroundColor: '#ddd' }]}>
-              <FontAwesome name="user" size={40} color={Colors.darkGray} />
-            </View>
+            <Image source={require('../assests/Images/userpng.png')}
+              style={styles.avatar} />
           )}
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.userInfo} onPress={() => navigation.navigate('Profile')}>
+        <TouchableOpacity
+          style={styles.userInfo}
+          onPress={() => navigation.navigate('Profile')}
+        >
           <Text style={styles.name}>
             {`${firstName} ${lastName}`.trim().length > 15
               ? `${firstName} ${lastName}`.trim().substring(0, 15) + "..."
               : `${firstName} ${lastName}`.trim() || "User"}
           </Text>
-
           <Text style={styles.email}>
-            {userEmail?.length > 20
-              ? userEmail.substring(0, 20) + "..."
-              : userEmail}
+            {userEmail
+              ? userEmail.length > 20
+                ? userEmail.substring(0, 20) + "..."
+                : userEmail
+              : "user@gmail.com"}
           </Text>
-
         </TouchableOpacity>
+
       </View>
 
       <View style={{ flex: 1 }}>

@@ -10,8 +10,7 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        marginTop: SH(20),
-        marginBottom: SH(10),
+        marginVertical: SH(7),
     },
     sectionTitle: {
         fontSize: SF(16),
@@ -74,7 +73,7 @@ const styles = StyleSheet.create({
         borderRadius: 14,
         justifyContent: 'center',
         alignItems: 'center',
-        marginBottom: SH(10),
+        marginBottom: SH(8),
         // elevation: 4,
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 2 },
@@ -82,7 +81,7 @@ const styles = StyleSheet.create({
         shadowRadius: 3,
     },
     cardText: {
-        marginTop: SH(10),
+        marginTop: SH(5),
         fontSize: SF(13),
         fontFamily: "Inter-Medium",
         color: 'white',
@@ -110,7 +109,7 @@ const styles = StyleSheet.create({
     noon: {
         fontSize: SF(18),
         color: Colors.light,
-        fontFamily: "Inter-Bold"
+        fontFamily: "Inter-Medium"
     },
     name: {
         fontSize: SF(15),

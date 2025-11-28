@@ -9,8 +9,8 @@ export const styles = StyleSheet.create({
         marginVertical: SH(25),
     },
     avatar: {
-        width: SW(40),
-        height: SH(40),
+        width: SW(50),
+        height: SH(50),
         borderRadius: 30,
     },
     userInfo: {

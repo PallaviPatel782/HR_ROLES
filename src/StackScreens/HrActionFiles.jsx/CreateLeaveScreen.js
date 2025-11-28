@@ -96,7 +96,7 @@ const CreateLeaveScreen = ({ navigation }) => {
                     duration: 3000,
                 });
                 setTimeout(() => {
-                    navigation.goBack();
+                    navigation.navigate('App');
                 }, 3000);
             } catch (error) {
                 console.log("Leave request error:", error?.response?.data || error);

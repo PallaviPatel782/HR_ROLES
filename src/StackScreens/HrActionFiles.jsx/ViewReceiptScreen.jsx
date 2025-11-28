@@ -1,212 +1,242 @@
-import React, { useEffect } from "react";
+import React from "react";
 import { View, Text, ScrollView } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { containerStyle } from "../../Styles/ScreenContainer";
 import AppHeader from "../../Components/AppHeader";
-import Colors from "../../utils/Colors";
 import { SF, SH, SW } from "../../utils/Dimensions";
+import Colors from "../../utils/Colors";
+import { containerStyle } from "../../Styles/ScreenContainer";
+import { useSelector } from "react-redux";
+
+const ColumnItem = ({ label, value, bold }) => (
+    <View style={{ marginBottom: SH(8) }}>
+        <Text
+            style={{
+                fontSize: SF(11.5),
+                fontFamily: "Inter",
+                color: "#6B7B8C",
+            }}
+        >
+            {label}
+        </Text>
+
+        <Text
+            style={{
+                fontSize: SF(14),
+                fontFamily: bold ? "Inter-Bold" : "Inter",
+                color: Colors.darkBlue,
+                marginTop: SH(1),
+            }}
+        >
+            {value || "-"}
+        </Text>
+    </View>
+);
+
+const RowItem = ({ label, value, bold }) => (
+    <View
+        style={{
+            flexDirection: "row",
+            justifyContent: "space-between",
+            paddingVertical: SH(4),
+        }}
+    >
+        <Text
+            style={{
+                fontSize: SF(13),
+                fontFamily: bold ? "Inter-Bold" : "Inter",
+                color: Colors.darkBlue,
+            }}
+        >
+            {label}
+        </Text>
+
+        <Text
+            style={{
+                fontSize: SF(13),
+                fontFamily: bold ? "Inter-Bold" : "Inter",
+                color: Colors.darkBlue,
+            }}
+        >
+            {value?.toLocaleString() || "0"}
+        </Text>
+    </View>
+);
+const SectionCard = ({ title, children, bg }) => (
+    <View
+        style={{
+            backgroundColor: bg || "#FFF",
+            borderRadius: 10,
+            paddingHorizontal: SW(14),
+            paddingVertical: SH(5),
+            marginBottom: SH(5),
+            width: "100%",
+            alignSelf: "center",
+            borderWidth: 1,
+            borderColor: "#DFE6EE",
+            shadowColor: "#000",
+            shadowOpacity: 0.05,
+            shadowRadius: 3,
+            elevation: 0.5,
+        }}
+    >
+        {title && (
+            <Text
+                style={{
+                    fontSize: SF(14),
+                    fontFamily: "Inter-Bold",
+                    color: Colors.darkBlue,
+                    marginBottom: SH(5),
+                }}
+            >
+                {title}
+            </Text>
+        )}
+        {children}
+    </View>
+);
+
 
 const ViewReceiptScreen = ({ route, navigation }) => {
     const { salaryItem } = route.params;
+    const { departmentsList, designationsList } = useSelector(state => state.salary);
+    const departmentTitle =
+        departmentsList?.[0]?.department?.title || "-";
+    const designationName =
+        designationsList?.[0]?.name || "-";
 
-    useEffect(() => {
-        console.log("salaryItem", salaryItem);
-    }, []);
+    const companyName =
+        salaryItem?.company?.companyName || "Company";
 
-    const textStyle = { color: Colors.darkBlue, fontFamily: "Inter" };
+    const monthName = new Date(salaryItem?.periodStart).toLocaleDateString(
+        "en-GB",
+        { month: "long", year: "numeric" }
+    );
 
     return (
-        <SafeAreaView style={containerStyle.container} edges={["top", "bottom"]}>
+        <SafeAreaView style={containerStyle.container}>
             <AppHeader navigation={navigation} title="Salary Summary" />
 
             <ScrollView
+                showsVerticalScrollIndicator={false}
                 contentContainerStyle={{
-                    paddingHorizontal: SW(10),
-                    paddingVertical: SH(10),
+                    paddingHorizontal: 0,
+                    paddingBottom: SH(40),
                 }}
             >
-                {/* Company Info */}
-                <View
-                    style={{
-                        backgroundColor: "#f2f2f2",
-                        padding: SW(12),
-                        borderRadius: 8,
-                        marginBottom: SH(12),
-                    }}
-                >
+                <SectionCard bg="#EAF1FF">
                     <Text
-                        style={[{ fontSize: SF(18), fontFamily: "Inter-Bold" }, textStyle]}
+                        style={{
+                            fontSize: SF(18),
+                            fontFamily: "Inter-Bold",
+                            textAlign: "center",
+                            color: Colors.darkBlue,
+                        }}
                     >
-                        {salaryItem?.company?.companyInfo?.profile?.brandName ||
-                            salaryItem?.company?.name ||
-                            "Company"}
-                    </Text>
-                    <Text style={[{ fontSize: SF(14) }, textStyle]}>
-                        Salary Slip for{" "}
-                        {new Date(salaryItem?.periodStart).toLocaleDateString("en-GB", {
-                            month: "long",
-                            year: "numeric",
-                        })}
-                    </Text>
-                </View>
-
-                {/* Employee Info */}
-                <View
-                    style={{
-                        backgroundColor: "#fff",
-                        padding: SW(12),
-                        borderRadius: 8,
-                        marginBottom: SH(12),
-                    }}
-                >
-                    <Text
-                        style={[
-                            { fontSize: SF(16), fontFamily: "600", marginBottom: SH(6) },
-                            textStyle,
-                        ]}
-                    >
-                        Employee Details
-                    </Text>
-                    <Text style={[{ fontSize: SF(14) }, textStyle]}>
-                        Name: {salaryItem?.user?.firstName} {salaryItem?.user?.lastName}
-                    </Text>
-                    <Text style={[{ fontSize: SF(14) }, textStyle]}>
-                        Employee ID: {salaryItem?.user?.empId || "-"}
+                        {companyName}
                     </Text>
 
-                    <Text style={[{ fontSize: SF(14) }, textStyle]}>
-                        Base Salary (CTC): ₹{salaryItem?.user?.salary?.toLocaleString()}
-                    </Text>
-                </View>
-
-                {/* Earnings */}
-                <View
-                    style={{
-                        backgroundColor: "#fff",
-                        padding: SW(12),
-                        borderRadius: 8,
-                        marginBottom: SH(12),
-                    }}
-                >
                     <Text
-                        style={[
-                            { fontSize: SF(16), fontFamily: "600", marginBottom: SH(6) },
-                            textStyle,
-                        ]}
+                        style={{
+                            fontSize: SF(14),
+                            fontFamily: "Inter-Medium",
+                            textAlign: "center",
+                            color: "#495A71",
+                        }}
                     >
-                        Earnings
+                        Salary Slip – {monthName}
                     </Text>
-                    {salaryItem?.splits?.map((e, idx) => (
-                        <View
-                            key={idx}
-                            style={{
-                                flexDirection: "row",
-                                justifyContent: "space-between",
-                                marginBottom: SH(4),
-                            }}
-                        >
-                            <Text style={[{ fontSize: SF(14) }, textStyle]}>{e.name}</Text>
-                            <Text style={[{ fontSize: SF(14) }, textStyle]}>
-                                ₹{e.amount.toLocaleString()}
-                            </Text>
+                </SectionCard>
+                <SectionCard title="Employee & Bank Details">
+                    <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
+                        <View style={{ width: "48%" }}>
+                            <ColumnItem
+                                label="Employee Name"
+                                value={`${salaryItem?.user?.firstName} ${salaryItem?.user?.lastName}`}
+                            />
+                            <ColumnItem label="Employee ID" value={salaryItem?.user?.empId} />
+                            <ColumnItem
+                                label="Department"
+                                value={
+                                    departmentTitle
+                                }
+                            />
+
+
+                            <ColumnItem
+                                label="Designation"
+                                value={designationName}
+
+                            />
+
+
                         </View>
-                    ))}
-                    <View
-                        style={{
-                            borderTopWidth: 1,
-                            borderTopColor: "#ccc",
-                            marginTop: SH(6),
-                            paddingTop: SH(4),
-                            flexDirection: "row",
-                            justifyContent: "space-between",
-                        }}
-                    >
-                        <Text
-                            style={[{ fontFamily: "Inter-Bold", fontSize: SF(14) }, textStyle]}
-                        >
-                            Gross Salary (Present Days)
-                        </Text>
-                        <Text
-                            style={[{ fontFamily: "Inter-Bold", fontSize: SF(14) }, textStyle]}
-                        >
-                            ₹{salaryItem?.grossSalary?.toLocaleString()}
-                        </Text>
-                    </View>
-                    <View
-                        style={{
-                            flexDirection: "row",
-                            justifyContent: "space-between",
-                            marginTop: SH(4),
-                        }}
-                    >
-                        <Text
-                            style={[{ fontFamily: "Inter-Bold", fontSize: SF(14) }, textStyle]}
-                        >
-                            Annual Salary
-                        </Text>
-                        <Text
-                            style={[{ fontFamily: "Inter-Bold", fontSize: SF(14) }, textStyle]}
-                        >
-                            ₹{salaryItem?.annualSalary?.toLocaleString()}
-                        </Text>
-                    </View>
-                </View>
+                        <View style={{ width: "48%" }}>
+                            <ColumnItem label="Bank Name" value={salaryItem?.user?.bankName} />
+                            <ColumnItem label="Account No." value={salaryItem?.user?.accountNo} />
+                            <ColumnItem label="IFSC Code" value={salaryItem?.user?.ifscCode} />
+                        </View>
 
-                {/* Deductions */}
-                <View
-                    style={{
-                        backgroundColor: "#fff",
-                        padding: SW(12),
-                        borderRadius: 8,
-                        marginBottom: SH(12),
-                    }}
-                >
-                    <Text
-                        style={[
-                            { fontSize: SF(16), fontFamily: "600", marginBottom: SH(6) },
-                            textStyle,
-                        ]}
+                    </View>
+                </SectionCard>
+                <SectionCard title="Earnings">
+                    <View
+                        style={{
+                            flexDirection: "row",
+                            justifyContent: "space-between",
+                            marginBottom: SH(6),
+                        }}
                     >
-                        Deductions
-                    </Text>
+                        <ColumnItem label="Present" value={salaryItem?.presentDays} />
+                        <ColumnItem label="Absent" value={salaryItem?.absentDays} />
+                        <ColumnItem label="Working" value={salaryItem?.totalWorkDays} />
+
+                    </View>
+
+                    <RowItem label="Base Salary (CTC)" value={salaryItem?.user?.salary?.toLocaleString()} />
+                    <RowItem label="Gross Salary" value={salaryItem?.grossSalary} />
+                    <RowItem label="Annual Salary" value={salaryItem?.annualSalary} />
+                </SectionCard>
+                <SectionCard title="Deductions">
                     {salaryItem?.deductions?.map((d, idx) => (
-                        <View
-                            key={idx}
-                            style={{
-                                flexDirection: "row",
-                                justifyContent: "space-between",
-                                marginBottom: SH(4),
-                            }}
-                        >
-                            <Text style={[{ fontSize: SF(14) }, textStyle]}>{d.name}</Text>
-                            <Text style={[{ fontSize: SF(14) }, textStyle]}>
-                                ₹{d.amount.toLocaleString()}
-                            </Text>
-                        </View>
+                        <RowItem key={idx} label={d.name} value={d.amount} />
                     ))}
-                </View>
 
-                <View
-                    style={{
-                        backgroundColor: "#e6f7ff",
-                        padding: SW(12),
-                        borderRadius: 8,
-                        marginBottom: SH(20),
-                        flexDirection: "row",
-                        justifyContent: "space-between",
-                    }}
-                >
+                    {salaryItem?.extraDeductions?.map((ed, idx) => (
+                        <RowItem key={idx} label={ed.name} value={ed.amount} />
+                    ))}
+                </SectionCard>
+                <SectionCard>
                     <Text
-                        style={[{ fontFamily: "Inter-Bold", fontSize: SF(16) }, textStyle]}
+                        style={{
+                            fontFamily: "Inter-Bold",
+                            fontSize: SF(14),
+                            color: Colors.darkBlue,
+                        }}
                     >
                         Net Salary (Take Home)
                     </Text>
+
                     <Text
-                        style={[{ fontFamily: "Inter-Bold", fontSize: SF(16) }, textStyle]}
+                        style={{
+                            fontFamily: "Inter-Bold",
+                            fontSize: SF(14),
+                            color: Colors.darkBlue,
+                        }}
                     >
-                        ₹{salaryItem?.netSalary?.toLocaleString()}
+                        {salaryItem?.netSalary?.toLocaleString()}
                     </Text>
-                </View>
+                </SectionCard>
+                <Text
+                    style={{
+                        textAlign: "center",
+                        marginTop: SH(10),
+                        fontFamily: "Inter",
+                        fontSize: SF(12),
+                        color: "#6B7B8C",
+                    }}
+                >
+                    Generated automatically on {new Date().toLocaleDateString()}
+                </Text>
             </ScrollView>
         </SafeAreaView>
     );

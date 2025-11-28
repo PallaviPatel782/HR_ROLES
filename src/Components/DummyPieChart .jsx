@@ -25,21 +25,21 @@ const DummyPieChart = ({ salaryData = [] }) => {
     { short: 'Dec', full: 'December' }
   ];
 
-  const [currentMonthIndex, setCurrentMonthIndex] = useState(3);
+  const [currentMonthIndex, setCurrentMonthIndex] = useState(new Date().getMonth());
 
   const generateMonthlyData = () => {
-    const monthName = months[currentMonthIndex].full;
-    const currentMonthData = salaryData.find((item) => {
-      const itemMonth = new Date(item.date).toLocaleString('default', { month: 'long' });
-      return itemMonth === monthName;
-    });
+    const monthNumber = currentMonthIndex + 1; // 1–12
+
+    const currentMonthData = salaryData.find(
+      item => item.month === monthNumber
+    );
 
     if (!currentMonthData) return null;
 
     return [
       { label: 'Present', value: currentMonthData.presentDays, color: '#FDC978' },
       { label: 'Absent', value: currentMonthData.absentDays, color: '#D9D9D9' },
-      { label: 'working', value: currentMonthData.workingDays, color: '#A68EFF' },
+      { label: 'Working Days', value: currentMonthData.totalWorkDays, color: '#A68EFF' },
     ];
   };
 
@@ -47,84 +47,53 @@ const DummyPieChart = ({ salaryData = [] }) => {
   const series = data ? data.map(item => ({ value: item.value, color: item.color })) : [];
 
   const goToPreviousMonth = () => {
-    if (currentMonthIndex > 0) {
-      setCurrentMonthIndex(currentMonthIndex - 1);
-    }
+    if (currentMonthIndex > 0) setCurrentMonthIndex(currentMonthIndex - 1);
   };
 
   const goToNextMonth = () => {
-    if (currentMonthIndex < months.length - 1) {
-      setCurrentMonthIndex(currentMonthIndex + 1);
-    }
+    if (currentMonthIndex < 11) setCurrentMonthIndex(currentMonthIndex + 1);
   };
-
-  const hasPreviousMonth = currentMonthIndex > 0;
-  const hasNextMonth = currentMonthIndex < months.length - 1;
 
   return (
     <View style={styles.card}>
       <View style={styles.header}>
-        <MaterialCommunityIcons name="timelapse" size={20} color={'#4d0b37'} style={{
-          backgroundColor: '#A68EFF',
-          paddingHorizontal: SW(5), paddingVertical: SH(5), borderRadius: 50
-        }} />
+        <MaterialCommunityIcons
+          name="timelapse"
+          size={20}
+          color={'#4d0b37'}
+          style={{
+            backgroundColor: '#A68EFF',
+            paddingHorizontal: SW(5),
+            paddingVertical: SH(5),
+            borderRadius: 50,
+          }}
+        />
         <Text style={styles.headerText}>Attendance Recap</Text>
       </View>
 
       <View style={styles.monthNav}>
-        <View>
-          <TouchableOpacity
-            style={styles.navButton}
-            onPress={goToPreviousMonth}
-            disabled={!hasPreviousMonth}
-          >
-            <Ionicons
-              name="chevron-back-outline"
-              size={20}
-              color={hasPreviousMonth ? "#888" : "#EEE"}
-            />
-            {hasPreviousMonth && (
-              <Text style={styles.adjacentMonthText}>
-                {months[currentMonthIndex - 1].short} '{String(currentYear).slice(2)}
-              </Text>
-            )}
-          </TouchableOpacity>
-        </View>
+        <TouchableOpacity onPress={goToPreviousMonth} disabled={currentMonthIndex === 0}>
+          <Ionicons name="chevron-back-outline" size={20} color="#888" />
+        </TouchableOpacity>
 
-        <View>
-          <Text style={styles.currentMonthText}>
-            {months[currentMonthIndex].short} '{String(currentYear).slice(2)}
-          </Text>
-        </View>
+        <Text style={styles.currentMonthText}>
+          {months[currentMonthIndex].short} '{String(currentYear).slice(2)}
+        </Text>
 
-        <View>
-          <TouchableOpacity
-            style={styles.navButton}
-            onPress={goToNextMonth}
-            disabled={!hasNextMonth}
-          >
-            {hasNextMonth && (
-              <Text style={styles.adjacentMonthText}>
-                {months[currentMonthIndex + 1].short} '{String(currentYear).slice(2)}
-              </Text>
-            )}
-            <Ionicons
-              name="chevron-forward-outline"
-              size={20}
-              color={hasNextMonth ? "#888" : "#EEE"}
-            />
-          </TouchableOpacity>
-        </View>
+        <TouchableOpacity onPress={goToNextMonth} disabled={currentMonthIndex === 11}>
+          <Ionicons name="chevron-forward-outline" size={20} color="#888" />
+        </TouchableOpacity>
       </View>
+
       {data ? (
         <>
           <View style={styles.chartContainer}>
             <PieChart
               widthAndHeight={widthAndHeight}
               series={series}
-              doughnut={true}
+              doughnut
               coverRadius={0.6}
-              coverFill={'#FFF'}
+              coverFill="#FFF"
             />
           </View>
 
@@ -139,6 +108,7 @@ const DummyPieChart = ({ salaryData = [] }) => {
                 </View>
               ))}
             </View>
+
             <View style={styles.legendRow}>
               {data.map((item, index) => (
                 <View key={`value-${index}`} style={styles.legendColumn}>

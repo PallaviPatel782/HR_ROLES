@@ -15,6 +15,7 @@ import { SF, SH, SW } from '../../utils/Dimensions';
 import styles from '../../Styles/HrStyle';
 import { containerStyle } from '../../Styles/ScreenContainer';
 import { fetchTodayPunch, punchIn, punchOut } from '../../redux/slices/attendanceSlice';
+import { fetchUserProfile, setUserInfo } from '../../redux/slices/profileSlice';
 
 const actions = [
   {
@@ -52,39 +53,43 @@ const actions = [
     color: '#e9dfed',
     textColor: '#bc79db',
   },
-  {
-    icon: <MaterialCommunityIcons name="bullhorn-variant" size={30} color="#311B92" />, 
-    title: 'Announcement',
-    screen: 'AnnouncementScreen',
-    color: '#e1eefa',
-    textColor: '#3271a8'
-  }
+  // {
+  //   icon: <MaterialCommunityIcons name="bullhorn-variant" size={30} color="#311B92" />, 
+  //   title: 'Announcement',
+  //   screen: 'AnnouncementScreen',
+  //   color: '#e1eefa',
+  //   textColor: '#3271a8'
+  // }
 ];
 
 const Hr = ({ navigation }) => {
   const insets = useSafeAreaInsets();
   const dispatch = useDispatch();
-
+  const { profile } = useSelector(state => state.profile);
   const [firstName, setFirstName] = useState(null);
   const [lastName, setLastName] = useState(null);
 
   const { punchInTime, punchOutTime } = useSelector((state) => state.attendance);
 
-  useEffect(() => {
-    const fetchUserInfo = async () => {
-      try {
-        const userInfoString = await AsyncStorage.getItem('userInfo');
-        if (userInfoString) {
-          const userInfo = JSON.parse(userInfoString);
-          setFirstName(userInfo.firstName);
-          setLastName(userInfo.lastName);
-        }
-      } catch (error) {
-        console.error('Error fetching user info:', error);
+ useEffect(() => {
+  const fetchUserInfo = async () => {
+    try {
+      const stored = await AsyncStorage.getItem('userInfo');
+      console.log("stored",stored);
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        const freshProfile = await dispatch(fetchUserProfile(parsed.id)).unwrap();
+        dispatch(setUserInfo(freshProfile));
+        setFirstName(freshProfile.firstName || "");
+        setLastName(freshProfile.lastName || "");
       }
-    };
-    fetchUserInfo();
-  }, []);
+    } catch (error) {
+      console.error('Error fetching user info:', error);
+    }
+  };
+
+  fetchUserInfo();
+}, []);
 
   useFocusEffect(
     useCallback(() => {
@@ -155,7 +160,7 @@ const Hr = ({ navigation }) => {
         <Text style={styles.icon}>{icon}</Text>
       </View>
 
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: insets.bottom }}>
+      <ScrollView showsVerticalScrollIndicator={false}>
         <View style={{ paddingHorizontal: SW(10) }}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Punch In & Out</Text>

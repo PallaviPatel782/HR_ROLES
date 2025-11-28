@@ -269,7 +269,7 @@ const Profile = ({ navigation }) => {
                     <View style={{ alignSelf: 'center', marginVertical: SH(10) }}>
                         <View style={{ position: 'relative' }}>
                             <Image
-                                source={profileUri ? { uri: profileUri } : require('../../assests/Images/dummyProfile.jpg')}
+                                source={profileUri ? { uri: profileUri } : require('../../assests/Images/userpng.png')}
                                 style={{ width: SW(120), height: SW(120), borderRadius: SW(60), borderWidth: 2, borderColor: Colors.darkBlue }}
                                 resizeMode="cover"
                             />

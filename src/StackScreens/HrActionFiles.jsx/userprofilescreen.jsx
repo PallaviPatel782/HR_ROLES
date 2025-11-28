@@ -50,7 +50,7 @@ const userprofilescreen = ({ navigation }) => {
         dispatch(fetchUserProfile(parsed._id))
           .unwrap()
           .then((res) => {
-            console.log("fetchUserProfile response:", res);
+            console.log("fetchUserProfile response:", profile);
           })
           .catch((err) => {
             console.error("fetchUserProfile error:", err);
@@ -221,6 +221,7 @@ const userprofilescreen = ({ navigation }) => {
     if (firstName) formData.append("firstName", firstName);
     if (lastName) formData.append("lastName", lastName);
     if (email) formData.append("email", email);
+    if (profile?.empId) formData.append("empId", profile.empId);
     if (primaryPhone) formData.append("primaryPhone", primaryPhone);
     if (profileUri && !profileUri.startsWith("http")) {
       const filename = profileUri.split("/").pop();
@@ -285,7 +286,7 @@ const userprofilescreen = ({ navigation }) => {
           <View style={{ alignSelf: 'center', marginVertical: SH(10) }}>
             <View style={{ position: 'relative' }}>
               <Image
-                source={profileUri ? { uri: profileUri } : require('../../assests/Images/dummyProfile.jpg')}
+                source={profileUri ? { uri: profileUri } : require('../../assests/Images/userpng.png')}
                 style={{ width: SW(120), height: SW(120), borderRadius: SW(60), borderWidth: 2, borderColor: Colors.darkBlue }}
                 resizeMode="cover"
               />

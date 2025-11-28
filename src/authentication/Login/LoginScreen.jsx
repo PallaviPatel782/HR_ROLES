@@ -13,8 +13,6 @@ import { LOGIN_API } from '../../utils/BASE_URL';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { showMessage } from 'react-native-flash-message';
-import { setAuthToken } from '../../redux/slices/LoginSlice';
-import { useDispatch } from 'react-redux';
 
 const LoginScreen = () => {
   const navigation = useNavigation();
@@ -65,70 +63,70 @@ const LoginScreen = () => {
     return true;
   };
 
- const handleLogin = async () => {
-  if (!validateForm()) return;
+  const handleLogin = async () => {
+    if (!validateForm()) return;
 
-  const payload = {
-    email: userName.trim(),
-    password: password.trim(),
-  };
+    const payload = {
+      email: userName.trim(),
+      password: password.trim(),
+    };
 
-  console.log("Login Payload:", payload);
+    console.log("Login Payload:", payload);
 
-  setLoading(true);
-  try {
-    const response = await axios.post(LOGIN_API, payload, {
-      headers: { 'Content-Type': 'application/json' }
-    });
-
-    console.log("API Response:", response?.data);
-
-    const user = response?.data?.user;
-    const token = response?.data?.token;
-    const companyId = user?.companyDetails?.companyId || '';
-    const companyName = user?.companyDetails?.companyName || '';
-
-    if (user && token) {
-      await AsyncStorage.setItem('authToken', token);
-      await AsyncStorage.setItem('userInfo', JSON.stringify(user));
-      if (companyId) await AsyncStorage.setItem('companyId', companyId);
-      if (companyName) await AsyncStorage.setItem('companyName', companyName);
-
-      console.log("Stored companyId:", companyId);
-      console.log("Stored companyName:", companyName);
-
-      showMessage({
-        message: "Login Successful",
-        type: "success",
-        icon: "success",
-        duration: 3000,
+    setLoading(true);
+    try {
+      const response = await axios.post(LOGIN_API, payload, {
+        headers: { 'Content-Type': 'application/json' }
       });
 
-      navigation.reset({
-        index: 0,
-        routes: [{ name: "AppStack" }],
-      });
-    } else {
+      console.log("API Response:", response?.data);
+
+      const user = response?.data?.user;
+      const token = response?.data?.token;
+      const companyId = user?.companyDetails?.companyId || '';
+      const companyName = user?.companyDetails?.companyName || '';
+
+      if (user && token) {
+        await AsyncStorage.setItem('authToken', token);
+        await AsyncStorage.setItem('userInfo', JSON.stringify(user));
+        if (companyId) await AsyncStorage.setItem('companyId', companyId);
+        if (companyName) await AsyncStorage.setItem('companyName', companyName);
+
+        console.log("Stored companyId:", companyId);
+        console.log("Stored companyName:", companyName);
+
+        showMessage({
+          message: "Login Successful",
+          type: "success",
+          icon: "success",
+          duration: 3000,
+        });
+
+        navigation.reset({
+          index: 0,
+          routes: [{ name: "AppStack" }],
+        });
+      } else {
+        showMessage({
+          message: response?.data?.message || 'Invalid credentials',
+          type: 'danger',
+          icon: 'danger',
+          duration: 3000,
+        });
+      }
+    } catch (error) {
+      console.error("Login Error:", error?.response?.data || error.message);
+
       showMessage({
-        message: response?.data?.message || 'Invalid credentials',
+        message: error.response?.data?.message || 'Something went wrong',
         type: 'danger',
         icon: 'danger',
         duration: 3000,
       });
+    } finally {
+      setLoading(false);
     }
-  } catch (error) {
-    console.error("Login Error:", error?.response?.data || error.message);
-
-    showMessage({
-      message: error.response?.data?.message || 'Something went wrong',
-      type: 'danger',
-      icon: 'danger',
-      duration: 3000,
-    });
-  } finally {
-    setLoading(false);
-  }
-};
+  };
 
 
 
@@ -196,7 +194,6 @@ const LoginScreen = () => {
               <Text style={styles.resetPasswordText}>forgot password ?</Text>
             </TouchableOpacity>
           </View>
-
           <GradientButton
             title="Continue"
             onPress={handleLogin}

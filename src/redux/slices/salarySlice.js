@@ -1,7 +1,7 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import api from "../../utils/api";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { SALARY_API } from "../../utils/BASE_URL";
+import { SALARY_API, GET_DEPARTMENT, GET_DESIGNATION } from "../../utils/BASE_URL";
 
 export const fetchSalaryHistory = createAsyncThunk(
   "salary/fetchSalaryHistory",
@@ -14,21 +14,42 @@ export const fetchSalaryHistory = createAsyncThunk(
         return rejectWithValue("User not found");
       }
 
-      const finalUrl = `${SALARY_API}/${userInfo.id}?userId=${userInfo.id}&month=${month}&year=${year}`;
-      console.log("Calling API with URL:", finalUrl);
+      const url = `${SALARY_API}/${userInfo.id}?userId=${userInfo.id}&month=${month}&year=${year}`;
+      console.log("Calling Salary API:", url);
 
-      const res = await api.get(finalUrl);
-
-      console.log("API Response:", res?.data);
+      const res = await api.get(url);
+      console.log("Salary API Response:", res.data);
 
       if (res?.data?.success && res?.data?.data?.length > 0) {
         return res.data.data;
       } else {
-        return rejectWithValue(res.data?.message || "No salary records found for this month/year");
+        return rejectWithValue(res.data?.message || "No salary records found");
       }
     } catch (error) {
-      console.log("API Error:", error?.response?.data || error.message);
-      return rejectWithValue(error.message || "API Error");
+      console.log("Salary API Error:", error.response?.data || error.message);
+      return rejectWithValue(error.message);
+    }
+  }
+);
+
+export const fetchSalaryMeta = createAsyncThunk(
+  "salary/fetchSalaryMeta",
+  async (_, { rejectWithValue }) => {
+    try {
+      const companyId = await AsyncStorage.getItem("companyId");
+      if (!companyId) return rejectWithValue("Company ID missing");
+      const deptRes = await api.get(`${GET_DEPARTMENT}/${companyId}`);
+      console.log("Department API Response:", JSON.stringify(deptRes.data, null, 2));
+      const desigRes = await api.get(`${GET_DESIGNATION}/${companyId}`);
+      console.log("Designation API Response:", JSON.stringify(desigRes.data, null, 2));
+
+      return {
+        departmentsList: deptRes.data?.response || [],
+        designationsList: desigRes.data?.response || [],
+      };
+    } catch (error) {
+      console.log("Meta API Error:", error.response?.data || error.message);
+      return rejectWithValue(error.message);
     }
   }
 );
@@ -39,28 +60,38 @@ const salarySlice = createSlice({
     loading: false,
     salaryHistory: [],
     error: null,
+    departmentsList: [],
+    designationsList: [],
   },
+
   reducers: {
     clearSalaryHistory: (state) => {
       state.salaryHistory = [];
       state.error = null;
     },
   },
+
   extraReducers: (builder) => {
     builder
       .addCase(fetchSalaryHistory.pending, (state) => {
         state.loading = true;
         state.error = null;
-        state.salaryHistory = []; 
+        state.salaryHistory = [];
       })
       .addCase(fetchSalaryHistory.fulfilled, (state, action) => {
         state.loading = false;
         state.salaryHistory = action.payload || [];
-        state.error = null;
       })
       .addCase(fetchSalaryHistory.rejected, (state, action) => {
         state.loading = false;
-        state.salaryHistory = []; 
+        state.salaryHistory = [];
+        state.error = action.payload;
+      })
+      .addCase(fetchSalaryMeta.fulfilled, (state, action) => {
+        state.departmentsList = action.payload.departmentsList;
+        state.designationsList = action.payload.designationsList;
+      })
+      .addCase(fetchSalaryMeta.rejected, (state, action) => {
         state.error = action.payload;
       });
   },

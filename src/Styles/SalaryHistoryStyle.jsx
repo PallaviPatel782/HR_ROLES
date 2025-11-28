@@ -55,33 +55,33 @@ value: {
 buttonRow: {
   flexDirection: 'row',
   justifyContent: 'flex-end',
-  gap: SW(10),
+  gap: SW(5),
 },
 ViewReceiptButton:{
  backgroundColor:Colors.orange,
- paddingHorizontal:SW(5),
- paddingVertical:SH(3),
+ paddingHorizontal:SW(8),
+ paddingVertical:SH(5),
  borderRadius:5,
   display:"flex",
  flexDirection:"row"
 },
 ViewReceiptText:{
  color:Colors.darkOrange,
- fontSize:SF(11),
- fontFamily:"Inter-Medium"
+ fontSize:SF(12),
+ fontFamily:"Inter-Bold"
 },
 downloadButtonAlt:{
  backgroundColor:Colors.lightBlue,
- paddingHorizontal:SW(5),
- paddingVertical:SH(3),
+ paddingHorizontal:SW(8),
+ paddingVertical:SH(5),
  borderRadius:5,
  display:"flex",
  flexDirection:"row"
 },
 downloadTextAlt:{
  color:Colors.darkBlue,
-  fontSize:SF(11),
- fontFamily:"Inter-Medium"
+  fontSize:SF(12),
+ fontFamily:"Inter-Bold"
 }
  
 });

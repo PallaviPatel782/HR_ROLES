@@ -37,7 +37,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: Colors.gradientBlue,
     // paddingVertical: SH(7),
-    paddingHorizontal: SW(15),
+    paddingHorizontal: SW(10),
     height:SH(50),
   },
   leftIcon: {

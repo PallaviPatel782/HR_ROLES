@@ -22,3 +22,5 @@ export const CHANGE_PASSWORD = `${BASE_URL}/v1/user/changePassword`;
 export const RESET_PASSWORD = `${BASE_URL}/v1/user/resetPassword`;
 export const COMPANY_PROFILE = `${BASE_URL}/v1/company/getCompanyById`;
 export const COMPANY_POLICIES = `${BASE_URL}/v1/company/getAllPolicies`;
+export const GET_DEPARTMENT=`${BASE_URL}/v1/company/getDepartmentsByCompany`;
+export const GET_DESIGNATION=`${BASE_URL}/v1/company/getDesignationByCompany`;

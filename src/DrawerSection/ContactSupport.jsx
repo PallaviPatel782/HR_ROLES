@@ -20,7 +20,7 @@ const ContactSupport = ({ navigation }) => {
     };
 
     const handlePhonePress = () => {
-        Linking.openURL("tel:+919999999999");
+        Linking.openURL("tel:75078 64000");
     };
 
     return (
@@ -64,7 +64,7 @@ const ContactSupport = ({ navigation }) => {
                     <MaterialIcons name="call" size={20} color={Colors.darkBlue} />
                     <View style={styles.cardText}>
                         <Text style={styles.cardTitle}>Call Us</Text>
-                        <Text style={styles.cardDetail}>+91 9999999999</Text>
+                        <Text style={styles.cardDetail}>+91 75078 64000</Text>
                     </View>
                 </TouchableOpacity>
             </ScrollView>

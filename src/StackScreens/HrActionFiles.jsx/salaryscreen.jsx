@@ -11,15 +11,19 @@ import FilterModal from "../../Components/FilterModal";
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
 import DummyPieChart from "../../Components/DummyPieChart ";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchSalaryHistory } from "../../redux/slices/salarySlice";
+import { fetchSalaryHistory, fetchSalaryMeta } from "../../redux/slices/salarySlice";
 import { generatePDF } from "react-native-html-to-pdf";
 import { showMessage } from "react-native-flash-message";
 import RNFS from "react-native-fs";
-
+import { BASE_URL, IMG_URL } from "../../utils/BASE_URL";
 const SalaryScreen = ({ navigation }) => {
   const dispatch = useDispatch();
   const { salaryHistory, loading } = useSelector((state) => state.salary);
-  console.log("salaryHistory", salaryHistory);
+  const { departmentsList, designationsList } = useSelector(state => state.salary);
+  const departmentTitle =
+    departmentsList?.[0]?.department?.title || "-";
+  const designationName =
+    designationsList?.[0]?.name || "-";
 
   const [filterModalVisible, setFilterModalVisible] = useState(false);
   const [localFilters, setLocalFilters] = useState({
@@ -27,9 +31,18 @@ const SalaryScreen = ({ navigation }) => {
   });
 
   useEffect(() => {
+    console.log("salaryHistory", salaryHistory);
+    dispatch(fetchSalaryMeta());
+
     const today = new Date();
-    dispatch(fetchSalaryHistory({ month: today.getMonth() + 1, year: today.getFullYear() }));
-  }, [dispatch]);
+    dispatch(
+      fetchSalaryHistory({
+        month: today.getMonth() + 1,
+        year: today.getFullYear(),
+      })
+    );
+  }, []);
+
 
   const onApplyFilters = (appliedFilters) => {
     const fromDate = appliedFilters.dateRange.from
@@ -65,82 +78,242 @@ const SalaryScreen = ({ navigation }) => {
     }
   };
 
-  const generateSalarySlipHTML = (salaryItem) => {
-    return `
-      <html>
-        <head>
-          <style>
-            body { font-family: Arial, sans-serif; padding: 20px; color: #003366; }
-            h2 { text-align: center; }
-            .section { background: #f2f2f2; padding: 10px; margin-bottom: 10px; border-radius: 6px; }
-            .row { display: flex; justify-content: space-between; margin: 5px 0; }
-            .bold { font-weight: bold; }
-          </style>
-        </head>
-        <body>
-          <h2>Salary Slip</h2>
-
-          <div class="section">
-            <div class="row bold">
-              <span>${salaryItem?.company?.companyInfo?.profile?.brandName || salaryItem?.company?.name || "Company"}</span>
-              <span>${new Date(salaryItem?.periodStart).toLocaleDateString("en-GB", { month: "long", year: "numeric" })}</span>
-            </div>
-          </div>
-
-          <div class="section">
-            <div class="row"><span>Name:</span><span>${salaryItem?.user?.firstName} ${salaryItem?.user?.lastName}</span></div>
-            <div class="row"><span>Employee ID:</span><span>${salaryItem?.user?.empId || "-"}</span></div>
-            <div class="row"><span>Base Salary:</span><span>₹${Math.round(salaryItem?.user?.salary || 0).toLocaleString()}</span></div>
-          </div>
-
-          <div class="section">
-            <h3>Earnings</h3>
-            ${(salaryItem?.splits || [])
-        .map(e => `<div class="row"><span>${e.name}</span><span>₹${Math.round(e.amount || 0).toLocaleString()}</span></div>`)
-        .join("")}
-            <div class="row bold"><span>Gross Salary</span><span>₹${Math.round(salaryItem?.grossSalary || 0).toLocaleString()}</span></div>
-            <div class="row bold"><span>Annual Salary</span><span>₹${Math.round(salaryItem?.annualSalary || 0).toLocaleString()}</span></div>
-          </div>
-
-          <div class="section">
-            <h3>Deductions</h3>
-            ${(salaryItem?.deductions || [])
-        .map(d => `<div class="row"><span>${d.name}</span><span>₹${Math.round(d.amount || 0).toLocaleString()}</span></div>`)
-        .join("")}
-          </div>
-
-          <div class="section bold">
-            <div class="row"><span>Net Salary (Take Home)</span><span>₹${Math.round(salaryItem?.netSalary || 0).toLocaleString()}</span></div>
-          </div>
-        </body>
-      </html>
-    `;
+  const getBase64Image = async (imageUrl) => {
+    try {
+      const file = await RNFS.readFile(imageUrl, "base64");
+      return `data:image/png;base64,${file}`;
+    } catch (err) {
+      console.log("Base64 Error:", err);
+      return "";
+    }
   };
+
+  const convertUrlToBase64 = async (url) => {
+    try {
+      const response = await fetch(url);
+      const blob = await response.blob();
+
+      return await new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result);
+        reader.readAsDataURL(blob);
+      });
+    } catch (err) {
+      console.log("Logo convert error:", err);
+      return "";
+    }
+  };
+
+  const generateSalarySlipHTML = (
+    salaryItem,
+    departmentTitle,
+    designationName,
+    logoBase64
+  ) => {
+    const companyName =
+      salaryItem?.company?.companyInfo?.profile?.brandName ||
+      salaryItem?.company?.companyName ||
+      "Company";
+
+    const monthName = new Date(salaryItem?.periodStart).toLocaleDateString(
+      "en-GB",
+      { month: "long", year: "numeric" }
+    );
+
+    return `
+  <html>
+    <head>
+      <style>
+  body {
+    font-family: Arial, sans-serif;
+    padding: 16px;
+    color: #003366;
+    background: #ffffff;
+    font-size: 12px;
+  }
+
+  .header-title {
+    display: flex;
+    justify-content: space-between;
+    font-size: 16px;
+    font-weight: bold;
+  }
+
+  .company-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 12px;
+    margin-bottom: 12px;
+  }
+
+  /* FIXED — SAME WIDTH FOR EVERY TABLE */
+  table {
+    width: 100%;
+    border: 1px solid #d0d7de;
+    border-collapse: collapse;
+    margin-bottom: 16px;
+    table-layout: fixed;         
+  }
+
+  th, td {
+  border: 1px solid #d0d7de;
+  padding: 6px 8px;
+  width: 50%;
+  text-align: left;
+  word-wrap: break-word;
+  font-size: 11px;      
+  font-weight: normal; 
+}
+
+th {
+  background: #eef4fa;
+  font-weight: normal;  
+}
+  .section-title {
+    font-size: 14px;
+    font-weight: bold;
+    margin: 6px 0;
+  }
+
+  .footer {
+    text-align: center;
+    margin-top: 10px;
+    font-size: 10px;
+    color: #666;
+  }
+</style>
+
+    </head>
+
+    <body>
+
+      <!-- HEADER -->
+      <div class="header-title">
+        <span>Salary Slip</span>
+        <span>${monthName}</span>
+      </div>
+
+      <div class="company-row">
+        <span>${companyName}</span>
+        ${logoBase64
+        ? `<img src="${logoBase64}" style="width:40px;height:40px;object-fit:contain;" />`
+        : ""
+      }
+      </div>
+
+
+      <!-- EMPLOYEE DETAILS (UNIFORM TABLE) -->
+      <div class="section-title">Employee Details</div>
+      <table>
+        <tr><th>Name</th><td>${salaryItem?.user?.firstName} ${salaryItem?.user?.lastName}</td></tr>
+        <tr><th>Employee ID</th><td>${salaryItem?.user?.empId || "-"}</td></tr>
+        <tr><th>Department</th><td>${departmentTitle}</td></tr>
+        <tr><th>Designation</th><td>${designationName}</td></tr>
+        <tr><th>Base Salary (CTC)</th><td>₹${salaryItem?.user?.salary?.toLocaleString()}</td></tr>
+        <tr><th>Present Days</th><td>${salaryItem?.presentDays}</td></tr>
+        <tr><th>Absent Days</th><td>${salaryItem?.absentDays}</td></tr>
+        <tr><th>Working Days</th><td>${salaryItem?.totalWorkDays}</td></tr>
+      </table>
+
+
+      <!-- BANK DETAILS (UNIFORM TABLE) -->
+      <div class="section-title">Bank Details</div>
+
+      <table>
+        <tr><th>Account Holder</th><td>${salaryItem?.user?.acHolderName || "-"}</td></tr>
+        <tr><th>Bank Name</th><td>${salaryItem?.user?.bankName || "-"}</td></tr>
+        <tr><th>Branch Name</th><td>${departmentTitle}</td></tr>
+        <tr><th>Account Number</th><td>${designationName}</td></tr>
+        <tr><th>IFSC Code</th><td>₹${salaryItem?.user?.salary?.toLocaleString()}</td></tr>
+      </table>
+
+      <div class="section-title">Attendance Summary</div>
+<table>
+  <tr><th>Present Days</th><td>${salaryItem?.presentDays}</td></tr>
+  <tr><th>Absent Days</th><td>${salaryItem?.absentDays}</td></tr>
+  <tr><th>Working Days</th><td>${salaryItem?.totalWorkDays}</td></tr>
+</table>
+
+      <!-- EARNINGS -->
+      <div class="section-title">Earnings</div>
+      <table>
+        <tr><th>Name</th><th>Amount</th></tr>
+
+        ${salaryItem?.splits
+        ?.map(
+          (e) =>
+            `<tr><td>${e.name}</td><td>₹${e.amount.toLocaleString()}</td></tr>`
+        )
+        .join("")}
+
+        <tr><th>Gross Salary</th><td>₹${salaryItem?.grossSalary?.toLocaleString()}</td></tr>
+        <tr><th>Annual Salary</th><td>₹${salaryItem?.annualSalary?.toLocaleString()}</td></tr>
+      </table>
+
+
+      <!-- DEDUCTIONS -->
+      <div class="section-title">Deductions</div>
+      <table>
+        <tr><th>Name</th><th>Amount</th></tr>
+
+        ${salaryItem?.deductions
+        ?.map(
+          (d) =>
+            `<tr><td>${d.name}</td><td>₹${d.amount.toLocaleString()}</td></tr>`
+        )
+        .join("")}
+
+        ${salaryItem?.extraDeductions
+        ?.map(
+          (d) =>
+            `<tr><td>${d.name}</td><td>₹${d.amount.toLocaleString()}</td></tr>`
+        )
+        .join("")}
+      </table>
+
+
+      <!-- NET SALARY -->
+      <div class="section-title">Net Salary</div>
+      <table>
+        <tr><th>Net Salary (Take Home)</th><td><b>₹${salaryItem?.netSalary?.toLocaleString()}</b></td></tr>
+      </table>
+
+
+      <!-- FOOTER -->
+      <div class="footer">
+        Generated automatically on ${new Date().toLocaleDateString()}
+      </div>
+
+    </body>
+  </html>
+  `;
+  };
+
+
 
   const createPDF = async (salaryItem) => {
     try {
+      const fullLogoPath = `${IMG_URL}/${salaryItem.company.image}`;
+      console.log("fullLogoPath", fullLogoPath);
+      const logoBase64 = await convertUrlToBase64(fullLogoPath);
+
       let options = {
-        html: generateSalarySlipHTML(salaryItem),
+        html: generateSalarySlipHTML(salaryItem, departmentTitle, designationName, logoBase64),
         fileName: `salary-slip-${Date.now()}`,
         directory: "Download",
       };
 
       let results = await generatePDF(options);
-      console.log("PDF generated at:", results.filePath);
 
-      const finalPath = await moveToPublicDownloads(results.filePath);
+      await moveToPublicDownloads(results.filePath);
 
       showMessage({ message: "PDF saved in Downloads", type: "success" });
 
     } catch (err) {
-      console.error("Error creating/opening PDF:", err);
-      showMessage({
-        message: "Please install a PDF viewer app (like Google PDF Viewer or Adobe Acrobat)",
-        type: "warning",
-      });
+      console.error("PDF Error:", err);
     }
   };
-
 
 
 
@@ -177,7 +350,9 @@ const SalaryScreen = ({ navigation }) => {
       <View style={styles.buttonRow}>
         <TouchableOpacity
           style={styles.ViewReceiptButton}
-          onPress={() => navigation.navigate("ViewReceiptScreen", { salaryItem: item })}
+          onPress={() => navigation.navigate("ViewReceiptScreen", {
+            salaryItem: item,
+          })}
         >
           <Feather name="file-text" size={16} color={Colors.darkOrange} style={{ marginRight: SW(6) }} />
           <Text style={styles.ViewReceiptText}>View Receipt</Text>
@@ -185,7 +360,7 @@ const SalaryScreen = ({ navigation }) => {
 
         <TouchableOpacity
           style={styles.downloadButtonAlt}
-          onPress={() => createPDF(item)} // 👈 Dynamic + Open
+          onPress={() => createPDF(item)}
           activeOpacity={0.7}
         >
           <Feather name="download" size={16} color={Colors.darkBlue} style={{ marginRight: SW(6) }} />
