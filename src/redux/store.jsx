@@ -5,6 +5,7 @@ import AttendanceReducer from './slices/attendanceSlice';
 import salaryReducer from './slices/salarySlice';
 import profileReducer from './slices/profileSlice';
 import CompanyReducer from './slices/companyProfileSlice';
+import NotificationReducer from './slices/notificationSlice';
 
 const store = configureStore({
   reducer: {
@@ -12,8 +13,9 @@ const store = configureStore({
     auth_credencials: loginReducer,
     attendance: AttendanceReducer,
     salary: salaryReducer,
-     profile: profileReducer,
-     companyProfile:CompanyReducer,
+    profile: profileReducer,
+    companyProfile: CompanyReducer,
+    notification: NotificationReducer
   },
 });
 

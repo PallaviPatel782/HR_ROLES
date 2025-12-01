@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "264800878176",
+    "project_id": "trinexa-e4574",
+    "storage_bucket": "trinexa-e4574.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:264800878176:android:8d9cb09415017a5c1c0d05",
+        "android_client_info": {
+          "package_name": "com.trinexa.hrms"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDBkq4N3oYjPC-c-YiEDm1t0fI0pYy7jZY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -1,30 +1,31 @@
 import React from 'react';
 import { View, TouchableOpacity, StyleSheet, Text } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import Colors from '../utils/Colors';
 import { SW, SH, SF } from '../utils/Dimensions';
 
-const CustomHeader = ({ navigation }) => {
+const CustomHeader = ({ navigation, notificationCount = 0 }) => {
   return (
     <View style={[styles.headerContainer]}>
       <TouchableOpacity onPress={() => navigation.toggleDrawer()} style={styles.leftIcon}>
         <Ionicons name="menu" size={28} color="#fff" />
       </TouchableOpacity>
-
       <View style={styles.rightIcons}>
         <TouchableOpacity
           style={styles.icon}
           onPress={() => navigation.navigate('Notification')}
         >
           <Ionicons name="notifications-outline" size={24} color="#fff" />
-          <View style={styles.badge}>
-            <Text style={styles.badgeText}>0</Text>
-          </View>
+
+          {notificationCount > 0 && (
+            <View style={styles.badge}>
+              <Text style={styles.badgeText}>
+                {notificationCount > 99 ? "99+" : notificationCount}
+              </Text>
+            </View>
+          )}
         </TouchableOpacity>
-        {/* <TouchableOpacity style={styles.icon}>
-          <MaterialCommunityIcons name="chart-line" size={24} color="#fff" />
-        </TouchableOpacity> */}
+
       </View>
     </View>
   );
@@ -36,9 +37,8 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     backgroundColor: Colors.gradientBlue,
-    // paddingVertical: SH(7),
     paddingHorizontal: SW(10),
-    height:SH(50),
+    height: SH(50),
   },
   leftIcon: {
     padding: SW(5),

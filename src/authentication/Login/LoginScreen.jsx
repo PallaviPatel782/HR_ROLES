@@ -9,7 +9,7 @@ import { formStyle } from '../../Styles/formStyle';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AppHeader from '../../Components/AppHeader';
-import { LOGIN_API } from '../../utils/BASE_URL';
+import { LOGIN_API, SAVED_FCM_TOKEN } from '../../utils/BASE_URL';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { showMessage } from 'react-native-flash-message';
@@ -91,6 +91,23 @@ const LoginScreen = () => {
         await AsyncStorage.setItem('userInfo', JSON.stringify(user));
         if (companyId) await AsyncStorage.setItem('companyId', companyId);
         if (companyName) await AsyncStorage.setItem('companyName', companyName);
+        const fcmToken = await AsyncStorage.getItem('fcmToken');
+
+        if (fcmToken) {
+          try {
+            const headers = {
+              Authorization: `Bearer ${token}`,
+            };
+            const body = { fcmToken: fcmToken };
+
+            const res = await axios.post(SAVED_FCM_TOKEN, body, { headers });
+            console.log('FCM Token Saved to Server:', res.data);
+          } catch (err) {
+            console.log('Error saving FCM token:', err.response?.data || err);
+          }
+        } else {
+          console.log('No FCM token found in AsyncStorage');
+        }
 
         console.log("Stored companyId:", companyId);
         console.log("Stored companyName:", companyName);

@@ -11,6 +11,7 @@ import { showMessage } from 'react-native-flash-message';
 import { IMG_URL } from '../utils/BASE_URL';
 import { fetchUserProfile, setUserInfo } from '../redux/slices/profileSlice';
 import { useDispatch, useSelector } from 'react-redux';
+import messaging from '@react-native-firebase/messaging';
 
 const CustomDrawer = ({ navigation }) => {
   const dispatch = useDispatch();
@@ -88,7 +89,9 @@ const CustomDrawer = ({ navigation }) => {
     try {
       await AsyncStorage.removeItem('authToken');
       await AsyncStorage.removeItem('userInfo');
-      console.log("authToken & userInfo cleared");
+      await AsyncStorage.removeItem('fcmToken');
+      await messaging().deleteToken();
+      console.log("authToken & userInfo cleared & fcm token remove ");
 
       showMessage({
         message: 'Logout successful',

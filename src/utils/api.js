@@ -24,14 +24,19 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
-    const status = error.response?.status;
-    if (status === 401 || status === 404) {
+    const status = error?.response?.status;
+    if (status === 401) {
       await AsyncStorage.removeItem("authToken");
-      resetToAuth();
+      await AsyncStorage.removeItem("userInfo");
+      if (typeof resetToAuth === "function") {
+        resetToAuth();
+      }
+      console.log("Token expired. Redirecting to AuthStack.");
     }
 
     return Promise.reject(error);
   }
 );
+
 
 export default api;

@@ -5,6 +5,11 @@ export const IMG_URL = "https://api.tghrms.com";
 
 export const LOGIN_API = `${BASE_URL}/v1/user/login`;
 
+// notification apis
+export const SAVED_FCM_TOKEN=`${BASE_URL}/v1/user/save_FCM_Token`;
+export const GET_ALL_NOTIFICATION = 
+  `${BASE_URL}/v1/notification/getNotificationsByEmployeeNameAndType`;
+export const MARK_AS_READ=`${BASE_URL}/v1/notification/markAsRead`;
 // attendance apis 
 
 export const PUNCH_IN_API = `${BASE_URL}/v1/attendance/punchin`;

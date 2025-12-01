@@ -13,9 +13,19 @@ buildscript {
     }
     dependencies {
         classpath("com.android.tools.build:gradle")
+        classpath("com.google.gms:google-services:4.4.3")
         classpath("com.facebook.react:react-native-gradle-plugin")
         classpath("org.jetbrains.kotlin:kotlin-gradle-plugin")
     }
 }
+
+allprojects {
+    repositories {
+        maven {
+            url "$rootDir/../node_modules/@notifee/react-native/android/libs"
+        }
+    }
+}
+
 
 apply plugin: "com.facebook.react.rootproject"

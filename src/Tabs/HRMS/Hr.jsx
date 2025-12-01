@@ -16,6 +16,7 @@ import styles from '../../Styles/HrStyle';
 import { containerStyle } from '../../Styles/ScreenContainer';
 import { fetchTodayPunch, punchIn, punchOut } from '../../redux/slices/attendanceSlice';
 import { fetchUserProfile, setUserInfo } from '../../redux/slices/profileSlice';
+import { fetchAllNotifications } from '../../redux/slices/notificationSlice';
 
 const actions = [
   {
@@ -65,37 +66,51 @@ const actions = [
 const Hr = ({ navigation }) => {
   const insets = useSafeAreaInsets();
   const dispatch = useDispatch();
-  const { profile } = useSelector(state => state.profile);
+  const { notifications } = useSelector(state => state.notification);
+  const notificationCount = notifications?.length || 0;
   const [firstName, setFirstName] = useState(null);
   const [lastName, setLastName] = useState(null);
 
   const { punchInTime, punchOutTime } = useSelector((state) => state.attendance);
 
- useEffect(() => {
-  const fetchUserInfo = async () => {
-    try {
-      const stored = await AsyncStorage.getItem('userInfo');
-      console.log("stored",stored);
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        const freshProfile = await dispatch(fetchUserProfile(parsed.id)).unwrap();
-        dispatch(setUserInfo(freshProfile));
-        setFirstName(freshProfile.firstName || "");
-        setLastName(freshProfile.lastName || "");
+  useEffect(() => {
+    const fetchUserInfo = async () => {
+      try {
+        const stored = await AsyncStorage.getItem('userInfo');
+        console.log("stored", stored);
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          const freshProfile = await dispatch(fetchUserProfile(parsed.id)).unwrap();
+          const notifications = await dispatch(fetchAllNotifications(parsed.id)).unwrap();
+          console.log("📩 Notifications Loaded:", notifications);
+          dispatch(setUserInfo(freshProfile));
+          setFirstName(freshProfile.firstName || "");
+          setLastName(freshProfile.lastName || "");
+        }
+      } catch (error) {
+        console.error('Error fetching user info:', error);
       }
-    } catch (error) {
-      console.error('Error fetching user info:', error);
-    }
-  };
+    };
 
-  fetchUserInfo();
-}, []);
+    fetchUserInfo();
+  }, []);
 
   useFocusEffect(
     useCallback(() => {
-      dispatch(fetchTodayPunch());
+      const getDataOnFocus = async () => {
+        const stored = await AsyncStorage.getItem('userInfo');
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          dispatch(fetchTodayPunch());
+          dispatch(fetchAllNotifications(parsed.id));
+        }
+      };
+
+      getDataOnFocus();
+
     }, [dispatch])
   );
+
 
   const handlePunchIn = async () => {
     try {
@@ -151,7 +166,10 @@ const Hr = ({ navigation }) => {
 
   return (
     <SafeAreaView edges={['top']} style={[containerStyle.container, { flex: 1, paddingHorizontal: 0 }]}>
-      <CustomHeader navigation={navigation} />
+      <CustomHeader
+        navigation={navigation}
+        notificationCount={notificationCount}
+      />
       <View style={styles.NameContainer}>
         <View>
           <Text style={styles.noon}>{greeting},</Text>

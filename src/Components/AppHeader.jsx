@@ -18,7 +18,7 @@ const AppHeader = ({ navigation, title, description }) => {
                     }}
                     style={styles.leftIcon}
                 >
-                    <AntDesign name="arrowleft" size={25} color={Colors.dark} />
+                    <AntDesign name="arrowleft" size={18} color={Colors.dark} />
                 </TouchableOpacity>
                 <Text style={styles.TitleText}>{title}</Text>
             </View>
