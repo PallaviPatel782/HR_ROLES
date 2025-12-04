@@ -13,21 +13,16 @@ export const fetchTodayPunch = createAsyncThunk(
       const res = await axios.get(ATTENDANCE_RECORD, { headers });
       console.log("FetchTodayPunch Response:", res.data);
 
-      const timestamps = res.data?.data?.timestamps || [];
-      if (timestamps.length > 0) {
-        const today = new Date().toISOString().split("T")[0]; 
-        const todayRecord = timestamps.find(
-          (t) => t.date.startsWith(today) 
-        );
-
-        if (todayRecord) {
-          return {
-            punchIn: todayRecord.punchIn || null,
-            punchOut: todayRecord.punchOut || null,
-          };
-        }
+      const currentDay = res.data?.data?.currentDay;
+      if (currentDay) {
+        return {
+          punchIn: currentDay.punchIn || null,
+          punchOut: currentDay.punchOut || null,
+          status: currentDay.status || null,
+          date: currentDay.date
+        };
       }
-      return { punchIn: null, punchOut: null };
+      return { punchIn: null, punchOut: null, status: null };
     } catch (err) {
       console.error("Fetch Punch Error:", err.response?.data || err.message);
       return rejectWithValue(err.response?.data || err.message);
@@ -35,19 +30,27 @@ export const fetchTodayPunch = createAsyncThunk(
   }
 );
 
+
 export const fetchAttendanceHistory = createAsyncThunk(
   'attendance/fetchAttendanceHistory',
-  async (_, { rejectWithValue }) => {
+  async ({ month, year } = {}, { rejectWithValue }) => {
     try {
       const token = await AsyncStorage.getItem("authToken");
       const headers = { Authorization: `Bearer ${token}` };
 
-      const res = await axios.get(ATTENDANCES_API_DATA, { headers });
-      console.log("Attendance History Response:", res.data);
+      let url = ATTENDANCES_API_DATA;
+
+      if (month && year) {
+        url = `${url}?month=${month}&year=${year}`;
+      }
+
+      const res = await axios.get(url, { headers });
+
+      console.log("res.data?.data ",res.data?.data )
 
       return res.data?.data || [];
+
     } catch (err) {
-      console.error("Attendance History Error:", err.response?.data || err.message);
       return rejectWithValue(err.response?.data || err.message);
     }
   }
@@ -111,7 +114,11 @@ const attendanceSlice = createSlice({
       })
       .addCase(fetchAttendanceHistory.fulfilled, (state, action) => {
         state.loading = false;
-        state.history = action.payload;
+        state.history = action.payload.map(item => ({
+  ...item,
+  timestamps: item.timestamps || []
+}));
+
       })
       .addCase(fetchAttendanceHistory.rejected, (state, action) => {
         state.loading = false;

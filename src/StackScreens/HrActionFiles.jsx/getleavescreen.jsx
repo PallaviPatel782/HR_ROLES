@@ -28,6 +28,7 @@ const getleavescreen = ({ navigation }) => {
       const response = await api.get(GET_LEAVE_DATA);
       if (response?.data?.success) {
         const data = response.data.data || [];
+        console.log("data", data);
         setLeaveData(data);
         const leaveNames = Array.from(new Set(data.map(l => l.leaveName)));
         setFilterOptions(['All', ...leaveNames]);

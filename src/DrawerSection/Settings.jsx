@@ -34,9 +34,17 @@ const Settings = ({ navigation }) => {
   const appVersion = DeviceInfo.getVersion();
 
   const loadToggleState = async () => {
-    const saved = await AsyncStorage.getItem("notificationEnabled");
-    if (saved !== null) {
-      setAllowNotifications(JSON.parse(saved));
+    try {
+      const saved = await AsyncStorage.getItem("notificationEnabled");
+      if (saved !== null) {
+        setAllowNotifications(JSON.parse(saved));
+      } else {
+        const hasPermission = await checkNotificationPermission();
+        setAllowNotifications(hasPermission);
+        await AsyncStorage.setItem("notificationEnabled", JSON.stringify(hasPermission));
+      }
+    } catch (e) {
+      console.log("load state error", e);
     }
   };
 
@@ -44,13 +52,13 @@ const Settings = ({ navigation }) => {
     loadToggleState();
   }, []);
 
-  useEffect(() => {
-    checkNotificationPermission();
-  }, []);
-
   useFocusEffect(
     React.useCallback(() => {
-      checkNotificationPermission();
+      (async () => {
+        const hasPermission = await checkNotificationPermission();
+        setAllowNotifications(hasPermission);
+        await AsyncStorage.setItem("notificationEnabled", JSON.stringify(hasPermission));
+      })();
     }, [])
   );
 
@@ -63,19 +71,17 @@ const Settings = ({ navigation }) => {
         enabled = status === messaging.AuthorizationStatus.AUTHORIZED;
       } else {
         if (Platform.Version >= 33) {
-          const result = await PermissionsAndroid.check(
+          enabled = await PermissionsAndroid.check(
             PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS
           );
-          enabled = result;
         } else {
           enabled = true;
         }
       }
-
-      setAllowNotifications(enabled);
-      await AsyncStorage.setItem("notificationEnabled", JSON.stringify(enabled));
+      return enabled;
     } catch (error) {
       console.log("Check permission error:", error);
+      return false;
     }
   };
 
@@ -115,6 +121,8 @@ const Settings = ({ navigation }) => {
 
   const handleNotificationToggle = async (enabled) => {
     setAllowNotifications(enabled);
+    await AsyncStorage.setItem("notificationEnabled", JSON.stringify(enabled));
+
     const userToken = await AsyncStorage.getItem('authToken');
 
     try {
@@ -129,13 +137,13 @@ const Settings = ({ navigation }) => {
             description: 'Please enable notifications from settings.',
           });
           setAllowNotifications(false);
+          await AsyncStorage.setItem("notificationEnabled", "false");
           setLoading(false);
           return;
         }
 
         const fcmToken = await messaging().getToken();
         await AsyncStorage.setItem("fcmToken", fcmToken);
-        console.log("fcmToken", fcmToken);
 
         const payload = { fcmToken };
         const { data } = await axios.post(SAVED_FCM_TOKEN, payload, {
@@ -147,10 +155,7 @@ const Settings = ({ navigation }) => {
           message: data.success ? "Notifications Enabled" : "Error",
           description: data.message,
         });
-      }
-
-      else {
-
+      } else {
         await messaging().deleteToken();
         await AsyncStorage.removeItem("fcmToken");
 
@@ -176,8 +181,6 @@ const Settings = ({ navigation }) => {
       setLoading(false);
     }
   };
-
-
 
   const handleLogout = async () => {
     try {
@@ -222,26 +225,20 @@ const Settings = ({ navigation }) => {
   );
 
   return (
-    <SafeAreaView
-      style={[containerStyle.container, { backgroundColor: '#F5F8FF' }]}
-      edges={['top', 'bottom']}
-    >
+    <SafeAreaView style={[containerStyle.container, { backgroundColor: '#F5F8FF' }]} edges={['top', 'bottom']}>
       <AppHeader navigation={navigation} title="Settings" />
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-
         <Text style={styles.sectionTitle}>Account</Text>
         <SettingItem
           icon="person-outline"
           title="Edit Profile"
           onPress={() => navigation.navigate('Profile')}
         />
-
         <SettingItem
           icon="lock-closed-outline"
           title="Change Password"
           onPress={() => navigation.navigate('ChangePassword')}
         />
-
         <Text style={styles.sectionTitle}>Preferences</Text>
         <SettingItem
           icon="notifications-outline"
@@ -256,41 +253,31 @@ const Settings = ({ navigation }) => {
             />
           }
         />
-
         <Text style={styles.sectionTitle}>Support</Text>
         <SettingItem
           icon="help-circle-outline"
           title="FAQ"
           onPress={() => navigation.navigate('HelpCenterScreen')}
         />
-
         <SettingItem
           icon="chatbubble-ellipses-outline"
           title="Contact Support"
           onPress={() => navigation.navigate('ContactSupport')}
         />
-
         <Text style={styles.sectionTitle}>App</Text>
         <SettingItem
           icon="document-text-outline"
           title="Terms & Conditions"
           onPress={() => navigation.navigate('TermsAndConditionsScreen')}
         />
-
         <SettingItem
           icon="information-circle-outline"
           title="App Version"
           rightComponent={<Text style={styles.versionText}>v{appVersion}</Text>}
         />
-
         <Image source={companyLink.logo} style={styles.logoImage} />
-
         <View style={styles.logoutWrapper}>
-          <GradientButton
-            title="Logout"
-            onPress={handleLogout}
-            style={styles.logoutButton}
-          />
+          <GradientButton title="Logout" onPress={handleLogout} style={styles.logoutButton} />
         </View>
       </ScrollView>
     </SafeAreaView>

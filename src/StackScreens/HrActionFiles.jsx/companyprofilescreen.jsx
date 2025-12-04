@@ -119,7 +119,7 @@ const CompanyProfileScreen = ({ navigation }) => {
               resizeMode="contain"
             />
             <Text style={styles.companyName}>
-              {company.companyInfo?.profile?.registeredCompanyName || "Company"}
+              {company.companyInfo?.profile?.registeredCompanyName}
             </Text>
             <Text style={styles.industryType}>
               {company.companyInfo?.profile?.industryType || ""}

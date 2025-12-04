@@ -5,7 +5,7 @@ import { SALARY_API, GET_DEPARTMENT, GET_DESIGNATION } from "../../utils/BASE_UR
 
 export const fetchSalaryHistory = createAsyncThunk(
   "salary/fetchSalaryHistory",
-  async ({ month, year }, { rejectWithValue }) => {
+  async ({ month, year } = {}, { rejectWithValue }) => {
     try {
       const stored = await AsyncStorage.getItem("userInfo");
       const userInfo = stored ? JSON.parse(stored) : null;
@@ -14,14 +14,18 @@ export const fetchSalaryHistory = createAsyncThunk(
         return rejectWithValue("User not found");
       }
 
-      const url = `${SALARY_API}/${userInfo.id}?userId=${userInfo.id}&month=${month}&year=${year}`;
-      console.log("Calling Salary API:", url);
+      const url = `${SALARY_API}/${userInfo.id}`;
+      let params = {};
 
-      const res = await api.get(url);
-      console.log("Salary API Response:", res.data);
+      if (month) params.month = month;
+      if (year) params.year = year;
 
-      if (res?.data?.success && res?.data?.data?.length > 0) {
-        return res.data.data;
+      console.log("Calling Salary API:", url, "Params:", params);
+
+      const res = await api.get(url, { params });
+
+      if (res?.data?.success) {
+        return res.data.data || [];
       } else {
         return rejectWithValue(res.data?.message || "No salary records found");
       }
@@ -31,6 +35,8 @@ export const fetchSalaryHistory = createAsyncThunk(
     }
   }
 );
+
+
 
 export const fetchSalaryMeta = createAsyncThunk(
   "salary/fetchSalaryMeta",

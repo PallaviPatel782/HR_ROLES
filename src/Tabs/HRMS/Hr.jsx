@@ -67,7 +67,9 @@ const Hr = ({ navigation }) => {
   const insets = useSafeAreaInsets();
   const dispatch = useDispatch();
   const { notifications } = useSelector(state => state.notification);
-  const notificationCount = notifications?.length || 0;
+  const notificationCount = notifications
+    ? notifications.filter(n => !n.read).length
+    : 0;
   const [firstName, setFirstName] = useState(null);
   const [lastName, setLastName] = useState(null);
 

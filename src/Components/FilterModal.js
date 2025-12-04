@@ -15,7 +15,7 @@ const FilterModal = ({ visible, onClose, options, selectedFilters, onApply, show
   });
 
   const [showCalendar, setShowCalendar] = useState(false);
-  const [selecting, setSelecting] = useState('from'); // 'from' or 'to'
+  const [selecting, setSelecting] = useState('from'); 
 
   useEffect(() => {
     setLocalFilters({

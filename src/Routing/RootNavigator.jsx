@@ -34,9 +34,8 @@ const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
 const Drawer = createDrawerNavigator();
 
-const TabNavigator = ({ navigation, route }) => {
+const TabNavigator = ({ route }) => {
   const initialRoute = route?.params?.initialTab;
-  const insets = useSafeAreaInsets();
 
   return (
     <Tab.Navigator

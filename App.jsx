@@ -72,13 +72,13 @@ const AppContent = () => {
           authStatus === messaging.AuthorizationStatus.AUTHORIZED ||
           authStatus === messaging.AuthorizationStatus.PROVISIONAL;
 
-        return enabled; // <-- important
+        return enabled;
       } else {
         if (Platform.Version >= 33) {
           const result = await PermissionsAndroid.request(
             PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS
           );
-          return result === PermissionsAndroid.RESULTS.GRANTED; // <-- important
+          return result === PermissionsAndroid.RESULTS.GRANTED;
         }
         return true;
       }
@@ -112,7 +112,9 @@ const AppContent = () => {
   return (
     <View style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor={"#fff"} />
-      <RootNavigator />
+      <NavigationContainer ref={navigationRef}>
+        <RootNavigator />
+      </NavigationContainer>
       <InternetCheck />
       <FlashMessage
         position="bottom"
@@ -125,11 +127,9 @@ const AppContent = () => {
 
 const App = () => {
   return (
-    <Provider store={store} ref={navigationRef}>
+    <Provider store={store}>
       <SafeAreaProvider>
-        <NavigationContainer>
-          <AppContent />
-        </NavigationContainer>
+        <AppContent />
       </SafeAreaProvider>
     </Provider>
   );

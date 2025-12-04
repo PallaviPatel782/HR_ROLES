@@ -10,12 +10,16 @@ export function navigate(name, params) {
 }
 
 export function resetToAuth() {
-  if (navigationRef.current?.isReady()) {
-    navigationRef.current.dispatch(
-      CommonActions.reset({
-        index: 0,
-        routes: [{ name: 'AuthStack', state: { routes: [{ name: 'LoginScreen' }] } }],
-      })
-    );
+  if (!navigationRef.current?.isReady()) {
+    console.log("Navigation not ready");
+    return;
   }
+
+  navigationRef.current.dispatch(
+    CommonActions.reset({
+      index: 0,
+      routes: [{ name: "AuthStack" }],
+    })
+  );
 }
+

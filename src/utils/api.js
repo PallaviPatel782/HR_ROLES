@@ -1,4 +1,3 @@
-// src/utils/api.js
 import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { BASE_URL } from "./BASE_URL";
@@ -20,7 +19,6 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
@@ -28,15 +26,10 @@ api.interceptors.response.use(
     if (status === 401) {
       await AsyncStorage.removeItem("authToken");
       await AsyncStorage.removeItem("userInfo");
-      if (typeof resetToAuth === "function") {
-        resetToAuth();
-      }
-      console.log("Token expired. Redirecting to AuthStack.");
+      resetToAuth(); 
     }
-
     return Promise.reject(error);
   }
 );
-
 
 export default api;

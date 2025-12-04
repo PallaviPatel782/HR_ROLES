@@ -16,53 +16,60 @@ import { generatePDF } from "react-native-html-to-pdf";
 import { showMessage } from "react-native-flash-message";
 import RNFS from "react-native-fs";
 import { BASE_URL, IMG_URL } from "../../utils/BASE_URL";
+import FileViewer from "react-native-file-viewer";
+import MonthYearFilterModal from "../../Components/MonthYearFilterModal";
+
 const SalaryScreen = ({ navigation }) => {
   const dispatch = useDispatch();
+  const [isFilterApplied, setIsFilterApplied] = useState(false);
   const { salaryHistory, loading } = useSelector((state) => state.salary);
+  const [monthYearVisible, setMonthYearVisible] = useState(false);
+
   const { departmentsList, designationsList } = useSelector(state => state.salary);
   const departmentTitle =
     departmentsList?.[0]?.department?.title || "-";
   const designationName =
     designationsList?.[0]?.name || "-";
-
-  const [filterModalVisible, setFilterModalVisible] = useState(false);
   const [localFilters, setLocalFilters] = useState({
-    dateRange: { from: null, to: null },
+    month: null,
+    year: null,
   });
+
 
   useEffect(() => {
     console.log("salaryHistory", salaryHistory);
-    dispatch(fetchSalaryMeta());
+    console.log("localFilters:", localFilters);
+    console.log("isFilterApplied:", isFilterApplied);
 
-    const today = new Date();
-    dispatch(
-      fetchSalaryHistory({
-        month: today.getMonth() + 1,
-        year: today.getFullYear(),
-      })
-    );
+    dispatch(fetchSalaryMeta());
+    dispatch(fetchSalaryHistory());
   }, []);
 
 
-  const onApplyFilters = (appliedFilters) => {
-    const fromDate = appliedFilters.dateRange.from
-      ? new Date(appliedFilters.dateRange.from.setHours(0, 0, 0, 0))
-      : null;
+  const filteredSalaryHistory = salaryHistory.filter(item => {
+    if (!localFilters.month || !localFilters.year) return true;
 
-    const toDate = appliedFilters.dateRange.to
-      ? new Date(appliedFilters.dateRange.to.setHours(23, 59, 59, 999))
-      : null;
+    const date = new Date(item.periodStart);
 
-    setLocalFilters({
-      dateRange: { from: fromDate, to: toDate },
-    });
+    return (
+      date.getMonth() + 1 === Number(localFilters.month) &&
+      date.getFullYear() === Number(localFilters.year)
+    );
+  });
 
-    if (fromDate) {
-      dispatch(fetchSalaryHistory({
-        month: fromDate.getMonth() + 1,
-        year: fromDate.getFullYear()
-      }));
+  const onApplyFilters = async (filter) => {
+    setLocalFilters(filter); // store selected month/year
+    setIsFilterApplied(true);
+
+    if (filter.month && filter.year) {
+      // Dispatch API call with filters
+      dispatch(fetchSalaryHistory({ month: filter.month, year: filter.year }));
+    } else {
+      // No filter → fetch all
+      dispatch(fetchSalaryHistory());
     }
+
+    setMonthYearVisible(false);
   };
 
 
@@ -75,16 +82,6 @@ const SalaryScreen = ({ navigation }) => {
     } catch (e) {
       console.log("Copy error:", e);
       return filePath;
-    }
-  };
-
-  const getBase64Image = async (imageUrl) => {
-    try {
-      const file = await RNFS.readFile(imageUrl, "base64");
-      return `data:image/png;base64,${file}`;
-    } catch (err) {
-      console.log("Base64 Error:", err);
-      return "";
     }
   };
 
@@ -135,7 +132,7 @@ const SalaryScreen = ({ navigation }) => {
   .header-title {
     display: flex;
     justify-content: space-between;
-    font-size: 16px;
+    font-size: 14px;
     font-weight: bold;
   }
 
@@ -143,7 +140,7 @@ const SalaryScreen = ({ navigation }) => {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    font-size: 12px;
+    font-size: 10px;
     margin-bottom: 12px;
   }
 
@@ -162,7 +159,7 @@ const SalaryScreen = ({ navigation }) => {
   width: 50%;
   text-align: left;
   word-wrap: break-word;
-  font-size: 11px;      
+  font-size: 9px;      
   font-weight: normal; 
 }
 
@@ -171,7 +168,7 @@ th {
   font-weight: normal;  
 }
   .section-title {
-    font-size: 14px;
+    font-size: 12px;
     font-weight: bold;
     margin: 6px 0;
   }
@@ -295,23 +292,41 @@ th {
   const createPDF = async (salaryItem) => {
     try {
       const fullLogoPath = `${IMG_URL}/${salaryItem.company.image}`;
-      console.log("fullLogoPath", fullLogoPath);
       const logoBase64 = await convertUrlToBase64(fullLogoPath);
 
       let options = {
-        html: generateSalarySlipHTML(salaryItem, departmentTitle, designationName, logoBase64),
+        html: generateSalarySlipHTML(
+          salaryItem,
+          departmentTitle,
+          designationName,
+          logoBase64
+        ),
         fileName: `salary-slip-${Date.now()}`,
         directory: "Download",
       };
 
-      let results = await generatePDF(options);
+      const results = await generatePDF(options);
+      console.log("PDF generated at:", results.filePath);
+      const finalPath = await moveToPublicDownloads(results.filePath);
+      console.log("Copied to:", finalPath);
+      FileViewer.open(finalPath, {
+        showOpenWithDialog: true,
+        showAppsSuggestions: true,
+      })
+        .then(() => console.log("PDF opened from Downloads"))
+        .catch((err) => console.log("Viewer error:", err));
 
-      await moveToPublicDownloads(results.filePath);
-
-      showMessage({ message: "PDF saved in Downloads", type: "success" });
+      showMessage({
+        message: "PDF saved in Downloads",
+        type: "success",
+      });
 
     } catch (err) {
       console.error("PDF Error:", err);
+      showMessage({
+        message: "Failed to generate PDF",
+        type: "danger",
+      });
     }
   };
 
@@ -375,19 +390,20 @@ th {
       <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
         <AppHeader navigation={navigation} title="Salary History" />
         <View style={{ alignSelf: "flex-end", flexDirection: "row", alignItems: "center", marginBottom: SH(10) }}>
-          <TouchableOpacity onPress={() => setFilterModalVisible(true)} style={{ marginLeft: 10, paddingHorizontal: 5 }}>
+          <TouchableOpacity onPress={() => setMonthYearVisible(true)}>
             <MaterialIcons name="filter-list" size={26} color={Colors.gradientBlue} />
           </TouchableOpacity>
+
         </View>
       </View>
       <ScrollView showsVerticalScrollIndicator={false}>
+        <DummyPieChart salaryData={salaryHistory} />
         {loading && <ActivityIndicator size="large" color={Colors.darkBlue} style={{ marginTop: SH(20) }} />}
 
-        {!loading && salaryHistory.length > 0 && (
+        {!loading && filteredSalaryHistory.length > 0 && (
           <>
-            <DummyPieChart salaryData={salaryHistory} />
             <FlatList
-              data={salaryHistory}
+              data={filteredSalaryHistory}
               keyExtractor={(item, index) => item._id + index}
               renderItem={renderItem}
               contentContainerStyle={styles.listContainer}
@@ -397,7 +413,14 @@ th {
           </>
         )}
 
-        {!loading && salaryHistory.length === 0 && (
+        {!loading && isFilterApplied && filteredSalaryHistory.length === 0 && (
+          <View style={{ alignItems: "center", marginTop: SH(50) }}>
+            <Text style={{ fontSize: SF(16), color: Colors.darkGray }}>
+              No payroll records found for the given criteria
+            </Text>
+          </View>
+        )}
+        {!loading && !isFilterApplied && salaryHistory.length === 0 && (
           <View style={{ alignItems: "center", marginTop: SH(50) }}>
             <Text style={{ fontSize: SF(16), color: Colors.darkGray }}>
               No Salary records found for this user.
@@ -405,14 +428,16 @@ th {
           </View>
         )}
 
-        <FilterModal
-          visible={filterModalVisible}
-          onClose={() => setFilterModalVisible(false)}
-          options={[]}
-          selectedFilters={localFilters}
+        <MonthYearFilterModal
+          visible={monthYearVisible}
+          onClose={() => setMonthYearVisible(false)}
+          selected={{
+            month: localFilters.month,
+            year: localFilters.year
+          }}
           onApply={onApplyFilters}
-          showDateFilter={true}
         />
+
       </ScrollView>
     </SafeAreaView>
   );
